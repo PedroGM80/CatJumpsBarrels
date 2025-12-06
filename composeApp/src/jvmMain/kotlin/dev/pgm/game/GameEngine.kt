@@ -38,21 +38,27 @@ class GameEngine(private var state: GameState) {
         player = updatePlayerAnimation(player)
 
         val nearLadder = findNearbyLadder(player, state.ladders)
+        val shouldClimb = player.isClimbing || (nearLadder != null && (input.up || input.down))
 
-        player = if (player.isClimbing || (nearLadder != null && (input.up || input.down))) {
+        player = if (shouldClimb) {
             handlePlayerClimbing(player, input, nearLadder)
         } else {
             var updatedPlayer = handlePlayerHorizontalMovement(player, input)
             updatedPlayer = handlePlayerJumpingAndGravity(updatedPlayer, input)
+            updatedPlayer = applyPlayerPlatformCollision(updatedPlayer)
             updatedPlayer
         }
 
-        player = applyPlayerPlatformCollision(player)
         state = state.copy(player = player)
         return checkPlayerFallDeath()
     }
 
     private fun applyPlayerPlatformCollision(player: Player): Player {
+        // No aplicar colision de plataforma si el jugador esta escalando
+        if (player.isClimbing) {
+            return player
+        }
+        
         var newPlayer = player
         var onAnyPlatform = false
 
@@ -103,19 +109,52 @@ class GameEngine(private var state: GameState) {
         }
 
         val newX = ladder.centerX - player.size / 2
-        val newY = calculateNewClimbingY(player.position.y, input)
         val playerState = determineClimbingState(input)
 
-        return when {
-            hasReachedTopPlatform(newY, player.size, ladder, newX) ->
-                createPlayerOnPlatform(player, newX, state.platforms[ladder.topPlatformIndex])
-
-            hasReachedBottomPlatform(newY, player.size, ladder, newX) ->
-                createPlayerOnPlatform(player, newX, state.platforms[ladder.bottomPlatformIndex])
-
-            else ->
-                createClimbingPlayer(player, newX, newY, playerState)
+        val topPlatform = state.platforms.getOrNull(ladder.topPlatformIndex)
+        val bottomPlatform = state.platforms.getOrNull(ladder.bottomPlatformIndex)
+        
+        if (topPlatform == null || bottomPlatform == null) {
+            return player.copy(isClimbing = false)
         }
+        
+        val playerCenterX = newX + player.size / 2
+        val topTargetY = topPlatform.getYAt(playerCenterX) - player.size
+        val bottomTargetY = bottomPlatform.getYAt(playerCenterX) - player.size
+
+        var newY = player.position.y
+        if (input.up) newY -= GameConstants.CLIMB_SPEED
+        if (input.down) newY += GameConstants.CLIMB_SPEED
+
+        // Si sube y llega al tope, colocar en plataforma superior
+        if (input.up && newY <= topTargetY + GameConstants.CLIMB_SPEED) {
+            return player.copy(
+                position = Offset(newX, topTargetY),
+                isClimbing = false,
+                velocity = Offset.Zero,
+                isOnGround = true,
+                state = PlayerState.IDLE
+            )
+        }
+
+        // Si baja y llega al fondo, colocar en plataforma inferior
+        if (input.down && newY >= bottomTargetY - GameConstants.CLIMB_SPEED) {
+            return player.copy(
+                position = Offset(newX, bottomTargetY),
+                isClimbing = false,
+                velocity = Offset.Zero,
+                isOnGround = true,
+                state = PlayerState.IDLE
+            )
+        }
+
+        return player.copy(
+            position = Offset(newX, newY),
+            isClimbing = true,
+            velocity = Offset.Zero,
+            isOnGround = false,
+            state = playerState
+        )
     }
 
     private fun calculateNewClimbingY(currentY: Float, input: GameInput): Float {
@@ -129,18 +168,9 @@ class GameEngine(private var state: GameState) {
         return if (input.up || input.down) PlayerState.CLIMBING else PlayerState.IDLE
     }
 
-    private fun hasReachedTopPlatform(newY: Float, playerSize: Float, ladder: Ladder, newX: Float): Boolean {
-        val topPlatform = state.platforms[ladder.topPlatformIndex]
-        return newY <= topPlatform.getYAt(newX) - playerSize
-    }
-
-    private fun hasReachedBottomPlatform(newY: Float, playerSize: Float, ladder: Ladder, newX: Float): Boolean {
-        val bottomPlatform = state.platforms[ladder.bottomPlatformIndex]
-        return newY >= bottomPlatform.getYAt(newX) - playerSize
-    }
-
     private fun createPlayerOnPlatform(player: Player, x: Float, platform: Platform): Player {
-        val y = platform.getYAt(x) - player.size
+        val playerCenterX = x + player.size / 2
+        val y = platform.getYAt(playerCenterX) - player.size
         return player.copy(
             position = Offset(x, y),
             isClimbing = false,
@@ -189,7 +219,7 @@ class GameEngine(private var state: GameState) {
             playerState = PlayerState.IDLE
         }
 
-        newX = newX.coerceIn(0f, GameConstants.LEVEL_WIDTH - player.size)
+        // Permitir salir por los lados (sin coerceIn)
         return player.copy(position = Offset(newX, player.position.y), direction = direction, state = playerState)
     }
 
@@ -212,7 +242,13 @@ class GameEngine(private var state: GameState) {
     }
 
     private fun checkPlayerFallDeath(): GameState {
-        if (state.player.position.y > state.screenSize.height) {
+        val player = state.player
+        // Muerte por caer abajo o salir por los lados
+        val fellDown = player.position.y > state.screenSize.height
+        val fellLeft = player.position.x + player.size < 0
+        val fellRight = player.position.x > GameConstants.LEVEL_WIDTH
+        
+        if (fellDown || fellLeft || fellRight) {
             return handlePlayerDeathAndRespawn()
         }
         return state
@@ -525,7 +561,7 @@ class GameEngine(private var state: GameState) {
 
     private fun checkWinCondition(): GameState {
         val playerHitbox = state.player.hitbox
-        val princessHitbox = state.princess.hitbox
+        val princessHitbox = state.winObjetive.hitbox
 
         if (playerHitbox.overlaps(princessHitbox)) {
             val finalScore = state.score + GameConstants.POINTS_WIN
@@ -533,7 +569,7 @@ class GameEngine(private var state: GameState) {
                 isWon = true,
                 score = finalScore,
                 highScore = maxOf(state.highScore, finalScore),
-                particles = state.particles + createWinParticles(state.princess.position)
+                particles = state.particles + createWinParticles(state.winObjetive.position)
             )
         }
         return state
@@ -541,12 +577,15 @@ class GameEngine(private var state: GameState) {
 
     private fun findNearbyLadder(player: Player, ladders: List<Ladder>): Ladder? {
         val playerCenterX = player.position.x + player.size / 2
+        val playerTop = player.position.y
         val playerBottom = player.position.y + player.size
 
         return ladders.find { ladder ->
             val horizontalClose = abs(playerCenterX - ladder.centerX) < GameConstants.LADDER_HORIZONTAL_TOLERANCE
-            val onLadderVertical = playerBottom > ladder.top && player.position.y < ladder.bottom
-            horizontalClose && (onLadderVertical || player.isClimbing)
+            // Permitir un margen extra arriba y abajo para no perder la escalera al llegar al final
+            val verticalMargin = player.size * 0.5f
+            val onLadderVertical = playerBottom > ladder.top - verticalMargin && playerTop < ladder.bottom + verticalMargin
+            horizontalClose && onLadderVertical
         }
     }
 

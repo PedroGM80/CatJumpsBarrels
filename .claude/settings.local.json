@@ -3,7 +3,9 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(./gradlew build:*)",
-      "Bash(./gradlew.bat build)"
+      "Bash(./gradlew.bat build)",
+      "Bash(./gradlew.bat --stop)",
+      "Bash(./gradlew.bat clean build)"
     ],
     "deny": [],
     "ask": []

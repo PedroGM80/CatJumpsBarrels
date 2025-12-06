@@ -1,6 +1,7 @@
 package dev.pgm.game
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -15,18 +16,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import catjumpsbarrels.composeapp.generated.resources.Res
+import catjumpsbarrels.composeapp.generated.resources.background_industrial
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
+import org.jetbrains.compose.resources.painterResource
 import kotlin.math.sin
 
 object GameColors {
@@ -58,11 +62,20 @@ object GameColors {
 
 @Composable
 fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.background(
-            Brush.verticalGradient(colors = listOf(GameColors.backgroundGradientTop, GameColors.backgroundGradientBottom))
+    Box(modifier = modifier) {
+        // Fondo de imagen
+        Image(
+            painter = painterResource(Res.drawable.background_industrial),
+            contentDescription = "Background",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
-    ) {
+        
+        // Capa semi-transparente para oscurecer un poco el fondo
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f))
+        )
+        
         Canvas(modifier = Modifier.fillMaxSize()) {
             val screenWidth = size.width
             val levelWidth = GameConstants.LEVEL_WIDTH
@@ -72,7 +85,7 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
                 state.platforms.forEach { drawPlatform(it) }
                 state.ladders.forEach { drawLadder(it) }
                 drawDonkeyKong(state.enemy)
-                drawPrincess(state.princess)
+                drawPrincess(state.winObjetive)
                 state.barrels.forEach { drawBarrel(it) }
                 drawPlayer(state.player)
                 state.particles.forEach { drawParticle(it) }
@@ -262,7 +275,7 @@ private fun DrawScope.drawPlayerLegs(player: Player, alpha: Float) {
     )
 }
 
-private fun DrawScope.drawDonkeyKong(dk: DonkeyKong) {
+private fun DrawScope.drawDonkeyKong(dk: Boss) {
     val pos = dk.position
     val size = dk.size
     drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + 5f, pos.y + size * GameConstants.ENEMY_BODY_V_POS_SCALE), size = Size(size - 10f, size * GameConstants.ENEMY_BODY_H_SCALE))
@@ -281,17 +294,17 @@ private fun DrawScope.drawDonkeyKong(dk: DonkeyKong) {
     drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + size - 10f, pos.y + size * 0.4f + armOffset), size = Size(20f, 35f))
 }
 
-private fun DrawScope.drawPrincess(princess: Princess) {
-    drawPrincessDress(princess)
-    drawPrincessHead(princess)
-    drawPrincessHair(princess)
-    drawPrincessCrown(princess)
-    drawPrincessFace(princess)
+private fun DrawScope.drawPrincess(winObjetive: WinObjetive) {
+    drawPrincessDress(winObjetive)
+    drawPrincessHead(winObjetive)
+    drawPrincessHair(winObjetive)
+    drawPrincessCrown(winObjetive)
+    drawPrincessFace(winObjetive)
 }
 
-private fun DrawScope.drawPrincessDress(princess: Princess) {
-    val pos = princess.position
-    val size = princess.size
+private fun DrawScope.drawPrincessDress(winObjetive: WinObjetive) {
+    val pos = winObjetive.position
+    val size = winObjetive.size
 
     val dressPath = Path().apply {
         moveTo(pos.x + size / 2, pos.y + size * GameConstants.PRINCESS_DRESS_V_POS_SCALE)
@@ -304,35 +317,35 @@ private fun DrawScope.drawPrincessDress(princess: Princess) {
     drawPath(path = dressPath, color = GameColors.princessDressDark, style = Stroke(width = 2f))
 }
 
-private fun DrawScope.drawPrincessHead(princess: Princess) {
+private fun DrawScope.drawPrincessHead(winObjetive: WinObjetive) {
     val headCenter = Offset(
-        princess.position.x + princess.size / 2,
-        princess.position.y + princess.size * GameConstants.PRINCESS_HEAD_V_POS_SCALE
+        winObjetive.position.x + winObjetive.size / 2,
+        winObjetive.position.y + winObjetive.size * GameConstants.PRINCESS_HEAD_V_POS_SCALE
     )
 
     drawCircle(
         color = GameColors.playerFace,
-        radius = princess.size * GameConstants.PRINCESS_HEAD_RADIUS_SCALE,
+        radius = winObjetive.size * GameConstants.PRINCESS_HEAD_RADIUS_SCALE,
         center = headCenter
     )
 }
 
-private fun DrawScope.drawPrincessHair(princess: Princess) {
+private fun DrawScope.drawPrincessHair(winObjetive: WinObjetive) {
     val hairTopLeft = Offset(
-        princess.position.x + princess.size * 0.15f,
-        princess.position.y - 2f
+        winObjetive.position.x + winObjetive.size * 0.15f,
+        winObjetive.position.y - 2f
     )
     val hairSize = Size(
-        princess.size * GameConstants.PRINCESS_HAIR_H_SCALE,
-        princess.size * GameConstants.PRINCESS_HAIR_V_POS_SCALE
+        winObjetive.size * GameConstants.PRINCESS_HAIR_H_SCALE,
+        winObjetive.size * GameConstants.PRINCESS_HAIR_V_POS_SCALE
     )
 
     drawOval(color = GameColors.princessHair, topLeft = hairTopLeft, size = hairSize)
 }
 
-private fun DrawScope.drawPrincessCrown(princess: Princess) {
-    val centerX = princess.position.x + princess.size / 2
-    val baseY = princess.position.y - 8f
+private fun DrawScope.drawPrincessCrown(winObjetive: WinObjetive) {
+    val centerX = winObjetive.position.x + winObjetive.size / 2
+    val baseY = winObjetive.position.y - 8f
 
     for (i in 0..2) {
         val crownPath = Path().apply {
@@ -347,9 +360,9 @@ private fun DrawScope.drawPrincessCrown(princess: Princess) {
     }
 }
 
-private fun DrawScope.drawPrincessFace(princess: Princess) {
-    val pos = princess.position
-    val size = princess.size
+private fun DrawScope.drawPrincessFace(winObjetive: WinObjetive) {
+    val pos = winObjetive.position
+    val size = winObjetive.size
 
     // Eyes
     drawCircle(color = Color.Black, radius = 2f, center = Offset(pos.x + size * 0.4f, pos.y + size * 0.18f))

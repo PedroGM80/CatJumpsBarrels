@@ -8,8 +8,8 @@ import dev.pgm.game.model.utils.ScorePopup
 
 data class GameState(
     val player: Player,
-    val enemy: DonkeyKong,
-    val princess: Princess,
+    val enemy: Boss,
+    val winObjetive: WinObjetive,
     val platforms: List<Platform>,
     val ladders: List<Ladder>,
     val barrels: List<Barrel>,
@@ -33,8 +33,8 @@ data class GameState(
 
             return GameState(
                 player = createPlayer(allPlatforms[0]),
-                enemy = createDonkeyKong(allPlatforms[5]),
-                princess = createPrincess(princessPlatform),
+                enemy = createBoos(allPlatforms[5]),
+                winObjetive = createWinObjetive(princessPlatform),
                 platforms = allPlatforms,
                 ladders = ladders,
                 barrels = emptyList(),
@@ -51,7 +51,8 @@ data class GameState(
         private fun createPlatform(index: Int, screenHeight: Float): Platform {
             val y = screenHeight - GameConstants.PLATFORM_BOTTOM_OFFSET - (index * GameConstants.PLATFORM_GAP)
             val isEvenIndex = index % 2 == 0
-            val currentSlope = if (isEvenIndex) GameConstants.PLATFORM_SLOPE else -GameConstants.PLATFORM_SLOPE
+            // Plataforma 5 (DK) es recta, las demas tienen pendiente
+            val currentSlope = if (index == 5) 0f else if (isEvenIndex) GameConstants.PLATFORM_SLOPE else -GameConstants.PLATFORM_SLOPE
             val startX = if (isEvenIndex) 0f else GameConstants.PLATFORM_START_OFFSET
             val platformWidth = if (index == GameConstants.PLATFORM_COUNT - 1) {
                 GameConstants.LEVEL_WIDTH * GameConstants.DK_PLATFORM_WIDTH_SCALE
@@ -81,7 +82,7 @@ data class GameState(
         }
 
         /**
-         * Crea las escaleras del nivel estilo Donkey Kong:
+         * Crea las escaleras del nivel:
          * - Escaleras principales en los extremos alternados de las plataformas
          * - Escaleras adicionales en posiciones intermedias para que los barriles puedan bajar
          */
@@ -94,15 +95,43 @@ data class GameState(
                 val topPlatform = platforms[i + 1]
                 
                 // Escalera principal en el borde (alterna izquierda/derecha)
-                val mainLadder = createLadderBetweenPlatforms(bottomPlatform, topPlatform, i)
-                allLadders.add(mainLadder)
+                // Excepto para i=4 (plataforma 4->5) que se maneja aparte con las dos escaleras de DK
+                if (i < 4) {
+                    val mainLadder = createLadderBetweenPlatforms(bottomPlatform, topPlatform, i)
+                    allLadders.add(mainLadder)
+                }
                 
-                // Escalera adicional en posición intermedia (para que los barriles tengan más opciones)
+                // Escalera adicional en posicion intermedia
                 if (i < 4) {
                     val middleLadder = createMiddleLadder(bottomPlatform, topPlatform, i)
                     allLadders.add(middleLadder)
                 }
             }
+            
+            // Dos escaleras desde la plataforma de DK (plataforma 5) hacia abajo (plataforma 4)
+            // Escalera izquierda
+            val dkPlatform = platforms[5]
+            val belowDkPlatform = platforms[4]
+            val leftDkLadderX = dkPlatform.left + 30f
+            val leftDkLadderTop = dkPlatform.getYAt(leftDkLadderX) - 20f
+            val leftDkLadderBottom = belowDkPlatform.getYAt(leftDkLadderX)
+            allLadders.add(Ladder(
+                position = Offset(leftDkLadderX, leftDkLadderTop),
+                height = leftDkLadderBottom - leftDkLadderTop,
+                topPlatformIndex = 5,
+                bottomPlatformIndex = 4
+            ))
+            
+            // Escalera derecha
+            val rightDkLadderX = dkPlatform.right - 30f
+            val rightDkLadderTop = dkPlatform.getYAt(rightDkLadderX) - 20f
+            val rightDkLadderBottom = belowDkPlatform.getYAt(rightDkLadderX)
+            allLadders.add(Ladder(
+                position = Offset(rightDkLadderX, rightDkLadderTop),
+                height = rightDkLadderBottom - rightDkLadderTop,
+                topPlatformIndex = 5,
+                bottomPlatformIndex = 4
+            ))
             
             // Escalera a la princesa
             val princessLadder = createPrincessLadder(platforms[5], princessPlatform)
@@ -118,7 +147,9 @@ data class GameState(
             } else {
                 bottomPlatform.left + GameConstants.LADDER_OFFSET_FROM_EDGE
             }
-            val ladderTop = topPlatform.getYAt(ladderX)
+            // Extender la escalera un poco por encima de la plataforma superior
+            // para que el jugador pueda completar la subida
+            val ladderTop = topPlatform.getYAt(ladderX) - 20f
             val ladderBottom = bottomPlatform.getYAt(ladderX)
             val ladderHeight = ladderBottom - ladderTop
 
@@ -130,26 +161,25 @@ data class GameState(
             )
         }
 
+
         /**
          * Crea una escalera en posición intermedia de la plataforma
          */
         private fun createMiddleLadder(bottomPlatform: Platform, topPlatform: Platform, index: Int): Ladder {
-            // Posición en el centro-izquierdo o centro-derecho según el índice
             val isEvenIndex = index % 2 == 0
             val platformCenter = (bottomPlatform.left + bottomPlatform.right) / 2
             val ladderX = if (isEvenIndex) {
-                platformCenter - 80f  // Un poco a la izquierda del centro
+                platformCenter - 80f
             } else {
-                platformCenter + 80f  // Un poco a la derecha del centro
+                platformCenter + 80f
             }
             
-            // Asegurar que está dentro de los límites de ambas plataformas
             val clampedX = ladderX.coerceIn(
                 maxOf(bottomPlatform.left, topPlatform.left) + 30f,
                 minOf(bottomPlatform.right, topPlatform.right) - 30f
             )
             
-            val ladderTop = topPlatform.getYAt(clampedX)
+            val ladderTop = topPlatform.getYAt(clampedX) - 20f
             val ladderBottom = bottomPlatform.getYAt(clampedX)
             val ladderHeight = ladderBottom - ladderTop
 
@@ -163,10 +193,12 @@ data class GameState(
 
         private fun createPrincessLadder(dkPlatform: Platform, princessPlatform: Platform): Ladder {
             val ladderX = princessPlatform.left + GameConstants.LADDER_OFFSET_FROM_PRINCESS
-            val ladderHeight = dkPlatform.getYAt(ladderX) - princessPlatform.top
+            // Extender la escalera un poco por encima
+            val ladderTop = princessPlatform.top - 20f
+            val ladderHeight = dkPlatform.getYAt(ladderX) - ladderTop
 
             return Ladder(
-                position = Offset(ladderX, princessPlatform.top),
+                position = Offset(ladderX, ladderTop),
                 height = ladderHeight,
                 topPlatformIndex = 6,
                 bottomPlatformIndex = 5
@@ -184,21 +216,21 @@ data class GameState(
             )
         }
 
-        private fun createDonkeyKong(platform: Platform): DonkeyKong {
-            val x = GameConstants.DK_START_X
+        private fun createBoos(platform: Platform): Boss {
+            val x = GameConstants.DK_START_X + 40f  // Un poco mas a la derecha
             val y = platform.getYAt(x) - GameConstants.ENEMY_SIZE
 
-            return DonkeyKong(
+            return Boss(
                 position = Offset(x, y),
                 size = GameConstants.ENEMY_SIZE
             )
         }
 
-        private fun createPrincess(princessPlatform: Platform): Princess {
+        private fun createWinObjetive(princessPlatform: Platform): WinObjetive {
             val x = princessPlatform.position.x + GameConstants.PRINCESS_OFFSET_X
             val y = princessPlatform.top - GameConstants.PRINCESS_SIZE
 
-            return Princess(
+            return WinObjetive(
                 position = Offset(x, y),
                 size = GameConstants.PRINCESS_SIZE
             )

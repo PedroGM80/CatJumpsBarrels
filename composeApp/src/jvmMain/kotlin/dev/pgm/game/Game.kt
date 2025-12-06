@@ -696,7 +696,7 @@ private fun checkCollisions(state: GameState): GameState {
 }
 
 private fun checkWin(state: GameState): GameState {
-    if (state.player.hitbox.overlaps(state.princess.hitbox)) {
+    if (state.player.hitbox.overlaps(state.winObjetive.hitbox)) {
         val finalScore = state.score + GameConstants.POINTS_WIN
         return state.copy(isWon = true, score = finalScore, highScore = maxOf(state.highScore, finalScore))
     }

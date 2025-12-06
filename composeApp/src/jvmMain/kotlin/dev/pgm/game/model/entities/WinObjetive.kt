@@ -3,7 +3,7 @@ package dev.pgm.game.model.entities
 import androidx.compose.ui.geometry.Offset
 import dev.pgm.game.model.utils.GameRect
 
-data class Princess(
+data class WinObjetive(
     val position: Offset,
     val size: Float = 28f
 ) {
