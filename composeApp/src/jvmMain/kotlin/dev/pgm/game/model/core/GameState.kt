@@ -33,7 +33,7 @@ data class GameState(
 
             return GameState(
                 player = createPlayer(allPlatforms[0]),
-                enemy = createBoos(allPlatforms[5]),
+                enemy = createBoss(allPlatforms[5]),
                 winObjetive = createWinObjetive(princessPlatform),
                 platforms = allPlatforms,
                 ladders = ladders,
@@ -51,11 +51,11 @@ data class GameState(
         private fun createPlatform(index: Int, screenHeight: Float): Platform {
             val y = screenHeight - GameConstants.PLATFORM_BOTTOM_OFFSET - (index * GameConstants.PLATFORM_GAP)
             val isEvenIndex = index % 2 == 0
-            // Plataforma 5 (DK) es recta, las demas tienen pendiente
+            // Plataforma 5 (del enemigo) es recta, las demas tienen pendiente
             val currentSlope = if (index == 5) 0f else if (isEvenIndex) GameConstants.PLATFORM_SLOPE else -GameConstants.PLATFORM_SLOPE
             val startX = if (isEvenIndex) 0f else GameConstants.PLATFORM_START_OFFSET
             val platformWidth = if (index == GameConstants.PLATFORM_COUNT - 1) {
-                GameConstants.LEVEL_WIDTH * GameConstants.DK_PLATFORM_WIDTH_SCALE
+                GameConstants.LEVEL_WIDTH * GameConstants.ENEMY_PLATFORM_WIDTH_SCALE
             } else {
                 GameConstants.LEVEL_WIDTH - GameConstants.PLATFORM_START_OFFSET
             }
@@ -69,9 +69,9 @@ data class GameState(
             )
         }
 
-        private fun createPrincessPlatform(dkPlatform: Platform): Platform {
-            val x = dkPlatform.right - GameConstants.PRINCESS_PLATFORM_OFFSET_X
-            val y = dkPlatform.getYAt(x) - GameConstants.PRINCESS_PLATFORM_OFFSET_Y
+        private fun createPrincessPlatform(enemyPlatform: Platform): Platform {
+            val x = enemyPlatform.right - GameConstants.PRINCESS_PLATFORM_OFFSET_X
+            val y = enemyPlatform.getYAt(x) - GameConstants.PRINCESS_PLATFORM_OFFSET_Y
 
             return Platform(
                 position = Offset(x, y),
@@ -95,7 +95,7 @@ data class GameState(
                 val topPlatform = platforms[i + 1]
                 
                 // Escalera principal en el borde (alterna izquierda/derecha)
-                // Excepto para i=4 (plataforma 4->5) que se maneja aparte con las dos escaleras de DK
+                // Excepto para i=4 (plataforma 4->5) que se maneja aparte con las dos escaleras del enemigo
                 if (i < 4) {
                     val mainLadder = createLadderBetweenPlatforms(bottomPlatform, topPlatform, i)
                     allLadders.add(mainLadder)
@@ -108,37 +108,37 @@ data class GameState(
                 }
             }
             
-            // Dos escaleras desde la plataforma de DK (plataforma 5) hacia abajo (plataforma 4)
-            val dkPlatform = platforms[5]
-            val belowDkPlatform = platforms[4]
-            
+            // Dos escaleras desde la plataforma del enemigo (plataforma 5) hacia abajo (plataforma 4)
+            val enemyPlatform = platforms[5]
+            val belowEnemyPlatform = platforms[4]
+
             // Escalera izquierda
-            val leftDkLadderX = dkPlatform.left + 30f
-            val leftDkLadderTop = dkPlatform.getYAt(leftDkLadderX) - 20f
-            val leftDkLadderBottom = belowDkPlatform.getYAt(leftDkLadderX)
+            val leftEnemyLadderX = enemyPlatform.left + 30f
+            val leftEnemyLadderTop = enemyPlatform.getYAt(leftEnemyLadderX) - 20f
+            val leftEnemyLadderBottom = belowEnemyPlatform.getYAt(leftEnemyLadderX)
             val leftLadder = Ladder(
-                position = Offset(leftDkLadderX, leftDkLadderTop),
-                height = leftDkLadderBottom - leftDkLadderTop,
+                position = Offset(leftEnemyLadderX, leftEnemyLadderTop),
+                height = leftEnemyLadderBottom - leftEnemyLadderTop,
                 topPlatformIndex = 5,
                 bottomPlatformIndex = 4
             )
             allLadders.add(leftLadder)
             println("DEBUG LADDER CREATED: left ladder centerX=${leftLadder.centerX}, topIndex=${leftLadder.topPlatformIndex}")
-            
+
             // Escalera derecha
-            val rightDkLadderX = dkPlatform.right - 30f
-            val rightDkLadderTop = dkPlatform.getYAt(rightDkLadderX) - 20f
-            val rightDkLadderBottom = belowDkPlatform.getYAt(rightDkLadderX)
+            val rightEnemyLadderX = enemyPlatform.right - 30f
+            val rightEnemyLadderTop = enemyPlatform.getYAt(rightEnemyLadderX) - 20f
+            val rightEnemyLadderBottom = belowEnemyPlatform.getYAt(rightEnemyLadderX)
             val rightLadder = Ladder(
-                position = Offset(rightDkLadderX, rightDkLadderTop),
-                height = rightDkLadderBottom - rightDkLadderTop,
+                position = Offset(rightEnemyLadderX, rightEnemyLadderTop),
+                height = rightEnemyLadderBottom - rightEnemyLadderTop,
                 topPlatformIndex = 5,
                 bottomPlatformIndex = 4
             )
             allLadders.add(rightLadder)
             println("DEBUG LADDER CREATED: right ladder centerX=${rightLadder.centerX}, topIndex=${rightLadder.topPlatformIndex}")
-            
-            println("DEBUG: DK platform index=${dkPlatform.index}, left=${dkPlatform.left}, right=${dkPlatform.right}")
+
+            println("DEBUG: Enemy platform index=${enemyPlatform.index}, left=${enemyPlatform.left}, right=${enemyPlatform.right}")
             
             // Escalera a la princesa
             val princessLadder = createPrincessLadder(platforms[5], princessPlatform)
@@ -198,11 +198,11 @@ data class GameState(
             )
         }
 
-        private fun createPrincessLadder(dkPlatform: Platform, princessPlatform: Platform): Ladder {
+        private fun createPrincessLadder(enemyPlatform: Platform, princessPlatform: Platform): Ladder {
             val ladderX = princessPlatform.left + GameConstants.LADDER_OFFSET_FROM_PRINCESS
             // Extender la escalera un poco por encima
             val ladderTop = princessPlatform.top - 20f
-            val ladderHeight = dkPlatform.getYAt(ladderX) - ladderTop
+            val ladderHeight = enemyPlatform.getYAt(ladderX) - ladderTop
 
             return Ladder(
                 position = Offset(ladderX, ladderTop),
@@ -223,8 +223,8 @@ data class GameState(
             )
         }
 
-        private fun createBoos(platform: Platform): Boss {
-            val x = GameConstants.DK_START_X + 40f  // Un poco mas a la derecha
+        private fun createBoss(platform: Platform): Boss {
+            val x = GameConstants.ENEMY_START_X + 40f  // Un poco mas a la derecha
             val y = platform.getYAt(x) - GameConstants.ENEMY_SIZE
 
             return Boss(

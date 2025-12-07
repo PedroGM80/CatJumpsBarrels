@@ -31,16 +31,16 @@ object GameConstants {
     /** Offset horizontal para plataformas en posición impar */
     const val PLATFORM_START_OFFSET = 40f
 
-    /** Escala de ancho de la plataforma de Donkey Kong (60% del ancho total) */
-    const val DK_PLATFORM_WIDTH_SCALE = 0.6f
+    /** Escala de ancho de la plataforma del enemigo (60% del ancho total) */
+    const val ENEMY_PLATFORM_WIDTH_SCALE = 0.6f
 
     /** Ancho de la plataforma de la princesa */
     const val PRINCESS_PLATFORM_WIDTH = 120f
 
-    /** Offset horizontal de la plataforma de la princesa desde el borde derecho de DK */
+    /** Offset horizontal de la plataforma de la princesa desde el borde derecho del enemigo */
     const val PRINCESS_PLATFORM_OFFSET_X = 150f
 
-    /** Offset vertical de la plataforma de la princesa desde la de DK */
+    /** Offset vertical de la plataforma de la princesa desde la del enemigo */
     const val PRINCESS_PLATFORM_OFFSET_Y = 40f
 
     /** Distancia del borde de la plataforma donde se colocan las escaleras */
@@ -52,8 +52,8 @@ object GameConstants {
     /** Posición X inicial del jugador */
     const val PLAYER_START_X = 50f
 
-    /** Posición X inicial de Donkey Kong */
-    const val DK_START_X = 20f
+    /** Posición X inicial del enemigo */
+    const val ENEMY_START_X = 20f
 
     /** Offset X de la princesa dentro de su plataforma */
     const val PRINCESS_OFFSET_X = 40f
@@ -64,7 +64,7 @@ object GameConstants {
     const val GRAVITY = 0.45f
 
     /** Fuerza inicial del salto (negativa porque Y crece hacia abajo)
-     * En Donkey Kong original el salto es bajo, solo para saltar barriles */
+     * El salto es bajo, solo para saltar barriles */
     const val JUMP_STRENGTH = -7.5f
 
     /** Velocidad de movimiento horizontal del jugador */
@@ -139,7 +139,7 @@ object GameConstants {
     /** Número total de frames en la animación del jugador */
     const val PLAYER_ANIMATION_FRAMES = 4
 
-    /** Intervalo entre frames de animación de Donkey Kong (en milisegundos) */
+    /** Intervalo entre frames de animación del enemigo (en milisegundos) */
     const val ENEMY_ANIMATION_INTERVAL_MS = 400L
 
     /** Tiempo de invencibilidad tras morir (en milisegundos) */
@@ -159,7 +159,7 @@ object GameConstants {
     /** Tamaño del sprite del jugador */
     const val PLAYER_SIZE = 30f
 
-    /** Tamaño del sprite de Donkey Kong */
+    /** Tamaño del sprite del enemigo */
     const val ENEMY_SIZE = 60f
 
     /** Tamaño del sprite de la princesa */
@@ -253,32 +253,32 @@ object GameConstants {
     /** Escala de animación de las piernas */
     const val PLAYER_LEG_ANIM_SCALE = 1.5f
 
-    // Donkey Kong
-    /** Escala horizontal del cuerpo de DK */
+    // Enemigo
+    /** Escala horizontal del cuerpo del enemigo */
     const val ENEMY_BODY_H_SCALE = 0.8f
 
-    /** Posición vertical del cuerpo de DK */
+    /** Posición vertical del cuerpo del enemigo */
     const val ENEMY_BODY_V_POS_SCALE = 0.3f
 
-    /** Escala del pecho de DK */
+    /** Escala del pecho del enemigo */
     const val ENEMY_CHEST_H_SCALE = 0.5f
 
-    /** Posición vertical del pecho de DK */
+    /** Posición vertical del pecho del enemigo */
     const val ENEMY_CHEST_V_POS_SCALE = 0.45f
 
-    /** Escala del radio de la cabeza de DK */
+    /** Escala del radio de la cabeza del enemigo */
     const val ENEMY_HEAD_RADIUS_SCALE = 0.3f
 
-    /** Posición vertical de la cabeza de DK */
+    /** Posición vertical de la cabeza del enemigo */
     const val ENEMY_HEAD_V_POS_SCALE = 0.25f
 
-    /** Escala horizontal de la cara de DK */
+    /** Escala horizontal de la cara del enemigo */
     const val ENEMY_FACE_H_SCALE = 0.4f
 
-    /** Posición vertical de la cara de DK */
+    /** Posición vertical de la cara del enemigo */
     const val ENEMY_FACE_V_POS_SCALE = 0.15f
 
-    /** Offset de los brazos cuando DK lanza un barril */
+    /** Offset de los brazos cuando el enemigo lanza un barril */
     const val ENEMY_ARM_THROW_OFFSET = -10f
 
     // Princesa
