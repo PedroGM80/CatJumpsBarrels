@@ -23,7 +23,15 @@ class GameEngine(private var state: GameState) {
 
         animationTimer += deltaTime
 
-        state = updatePlayer(input)
+        state = checkAndRespawnPlayer()
+
+        if (state.player.state != PlayerState.DEAD) {
+            state = updatePlayer(input)
+        } else {
+            // Still update animation during death
+            state = state.copy(player = updatePlayerAnimation(state.player))
+        }
+
         state = updateDonkeyKong()
         state = updateBarrels()
         state = spawnBarrels()
@@ -72,7 +80,7 @@ class GameEngine(private var state: GameState) {
                             velocity = Offset(newPlayer.velocity.x, 0f),
                             isOnGround = true,
                             isJumping = false,
-                            state = if (newPlayer.state == PlayerState.JUMPING) PlayerState.IDLE else newPlayer.state
+                            state = if (newPlayer.state == PlayerState.JUMPING || newPlayer.state == PlayerState.FALLING) PlayerState.IDLE else newPlayer.state
                         )
                         onAnyPlatform = true
                         break
@@ -96,7 +104,9 @@ class GameEngine(private var state: GameState) {
     private fun updatePlayerAnimation(player: Player): Player {
         if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
             animationTimer = 0f
-            return player.copy(animationFrame = (player.animationFrame + 1) % GameConstants.PLAYER_ANIMATION_FRAMES)
+            val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+            val nextFrame = (player.animationFrame + 1) % animation.size
+            return player.copy(animationFrame = nextFrame)
         }
         return player
     }
@@ -208,12 +218,12 @@ class GameEngine(private var state: GameState) {
         if (input.left) {
             newX -= GameConstants.MOVE_SPEED
             direction = Direction.LEFT
-            if (player.isOnGround) playerState = PlayerState.WALKING
+            if (player.isOnGround) playerState = PlayerState.RUNNING
         }
         if (input.right) {
             newX += GameConstants.MOVE_SPEED
             direction = Direction.RIGHT
-            if (player.isOnGround) playerState = PlayerState.WALKING
+            if (player.isOnGround) playerState = PlayerState.RUNNING
         }
         if (!input.left && !input.right && player.isOnGround) {
             playerState = PlayerState.IDLE
@@ -234,7 +244,13 @@ class GameEngine(private var state: GameState) {
 
         if (!player.isOnGround) {
             velocity = Offset(velocity.x, velocity.y + GameConstants.GRAVITY)
-            if (!player.isClimbing) newPlayer = newPlayer.copy(state = PlayerState.JUMPING)
+            if (!player.isClimbing) {
+                newPlayer = if (velocity.y > 0) {
+                    newPlayer.copy(state = PlayerState.FALLING)
+                } else {
+                    newPlayer.copy(state = PlayerState.JUMPING)
+                }
+            }
         }
 
         val newY = player.position.y + velocity.y
@@ -567,20 +583,14 @@ class GameEngine(private var state: GameState) {
                 isGameOver = true,
                 lives = 0,
                 highScore = maxOf(state.highScore, state.score),
-                particles = state.particles + deathParticles
+                particles = state.particles + deathParticles,
+                player = state.player.copy(state = PlayerState.DEAD, animationFrame = 0)
             )
         }
 
-        val startPlatform = state.platforms.first()
         return state.copy(
-            lives = newLives,
-            player = Player(
-                position = Offset(50f, startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE),
-                size = GameConstants.PLAYER_SIZE,
-                isOnGround = true,
-                invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
-            ),
-            barrels = emptyList(),
+            player = state.player.copy(state = PlayerState.DEAD, animationFrame = 0),
+            playerDeathTimestamp = System.currentTimeMillis(),
             particles = state.particles + deathParticles
         )
     }
@@ -637,6 +647,29 @@ class GameEngine(private var state: GameState) {
             )
         }
         return state.copy(particles = updated)
+    }
+
+    private fun checkAndRespawnPlayer(): GameState {
+        if (state.playerDeathTimestamp > 0 && System.currentTimeMillis() - state.playerDeathTimestamp > 1500) { // 1.5s death animation
+            val newLives = state.lives - 1
+            if (newLives <= 0) {
+                return state.copy(isGameOver = true, lives = 0, highScore = maxOf(state.highScore, state.score))
+            }
+
+            val startPlatform = state.platforms.first()
+            return state.copy(
+                lives = newLives,
+                player = Player(
+                    position = Offset(50f, startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE),
+                    size = GameConstants.PLAYER_SIZE,
+                    isOnGround = true,
+                    invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
+                ),
+                barrels = emptyList(),
+                playerDeathTimestamp = 0
+            )
+        }
+        return state
     }
 
     private fun cleanupPopups(): GameState {

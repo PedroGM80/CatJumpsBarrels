@@ -17,6 +17,7 @@ import androidx.compose.ui.window.application
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
+import dev.pgm.game.model.entities.CatAnimation
 import dev.pgm.game.model.entities.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -27,6 +28,7 @@ fun main() = application {
     var input by remember { mutableStateOf(GameInput()) }
     var isPaused by remember { mutableStateOf(false) }
     var lastBarrelSpawn by remember { mutableStateOf(System.currentTimeMillis()) }
+    var animationTimer by remember { mutableStateOf(0f) }
 
     Window(
         onCloseRequest = ::exitApplication,
@@ -92,22 +94,38 @@ fun main() = application {
     ) {
         // Game loop
         LaunchedEffect(Unit) {
+            var lastFrameTime = System.currentTimeMillis()
             while (isActive) {
+                val currentTime = System.currentTimeMillis()
+                val deltaTime = (currentTime - lastFrameTime) / 1000f
+                lastFrameTime = currentTime
+
                 if (!gameState.isGameOver && !gameState.isWon && !isPaused) {
                     var newState = gameState
 
-                    newState = updatePlayer(newState, input)
-                    newState = updateBarrels(newState)
+                    newState = checkAndRespawnPlayer(newState)
 
-                    val now = System.currentTimeMillis()
-                    if (now - lastBarrelSpawn > GameConstants.BARREL_SPAWN_INTERVAL) {
-                        lastBarrelSpawn = now
-                        newState = spawnBarrel(newState)
+                    if (newState.player.state == PlayerState.DEAD) {
+                        val (p, t) = updatePlayerAnimation(newState.player, animationTimer + deltaTime)
+                        animationTimer = t
+                        newState = newState.copy(player = p)
+                    } else {
+                        val (p, t) = updatePlayerAnimation(newState.player, animationTimer + deltaTime)
+                        animationTimer = t
+                        newState = newState.copy(player = p)
+
+                        newState = updatePlayer(newState, input)
+                        newState = updateBarrels(newState)
+
+                        val now = System.currentTimeMillis()
+                        if (now - lastBarrelSpawn > GameConstants.BARREL_SPAWN_INTERVAL) {
+                            lastBarrelSpawn = now
+                            newState = spawnBarrel(newState)
+                        }
+
+                        newState = checkCollisions(newState)
+                        newState = checkWin(newState)
                     }
-
-                    newState = checkCollisions(newState)
-                    newState = checkWin(newState)
-
                     gameState = newState
                 }
 
@@ -325,12 +343,12 @@ private fun handleHorizontalMovement(player: Player, input: GameInput): Player {
     if (input.left) {
         newX -= GameConstants.MOVE_SPEED
         direction = Direction.LEFT
-        if (player.isOnGround) playerState = PlayerState.WALKING
+        if (player.isOnGround) playerState = PlayerState.RUNNING
     }
     if (input.right) {
         newX += GameConstants.MOVE_SPEED
         direction = Direction.RIGHT
-        if (player.isOnGround) playerState = PlayerState.WALKING
+        if (player.isOnGround) playerState = PlayerState.RUNNING
     }
     if (!input.left && !input.right && player.isOnGround) {
         playerState = PlayerState.IDLE
@@ -351,7 +369,13 @@ private fun handleJumpAndGravity(player: Player, input: GameInput): Player {
 
     if (!player.isOnGround) {
         velocity = Offset(velocity.x, velocity.y + GameConstants.GRAVITY)
-        if (!player.isClimbing) p = p.copy(state = PlayerState.JUMPING)
+        if (!player.isClimbing) {
+            p = if (velocity.y > 0) {
+                p.copy(state = PlayerState.FALLING)
+            } else {
+                p.copy(state = PlayerState.JUMPING)
+            }
+        }
     }
 
     val newY = player.position.y + velocity.y
@@ -374,7 +398,7 @@ private fun applyPlatformCollision(player: Player, platforms: List<Platform>): P
                         velocity = Offset(newPlayer.velocity.x, 0f),
                         isOnGround = true,
                         isJumping = false,
-                        state = if (newPlayer.state == PlayerState.JUMPING) PlayerState.IDLE else newPlayer.state
+                        state = if (newPlayer.state == PlayerState.JUMPING || newPlayer.state == PlayerState.FALLING) PlayerState.IDLE else newPlayer.state
                     )
                 }
             }
@@ -399,20 +423,52 @@ private fun handleDeath(state: GameState): GameState {
     val newLives = state.lives - 1
 
     if (newLives <= 0) {
-        return state.copy(isGameOver = true, lives = 0, highScore = maxOf(state.highScore, state.score))
+        return state.copy(
+            isGameOver = true,
+            lives = 0,
+            highScore = maxOf(state.highScore, state.score),
+            player = state.player.copy(state = PlayerState.DEAD, animationFrame = 0)
+        )
     }
 
-    val startPlatform = state.platforms.first()
     return state.copy(
-        lives = newLives,
-        player = Player(
-            position = Offset(50f, startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE),
-            size = GameConstants.PLAYER_SIZE,
-            isOnGround = true,
-            invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
-        ),
-        barrels = emptyList()
+        player = state.player.copy(state = PlayerState.DEAD, animationFrame = 0, velocity = Offset.Zero),
+        playerDeathTimestamp = System.currentTimeMillis()
     )
+}
+
+private fun checkAndRespawnPlayer(state: GameState): GameState {
+    if (state.playerDeathTimestamp > 0 && System.currentTimeMillis() - state.playerDeathTimestamp > 1500) { // 1.5s death animation
+        val newLives = state.lives - 1
+        if (newLives < 0) {
+            return state.copy(isGameOver = true, lives = 0, highScore = maxOf(state.highScore, state.score))
+        }
+
+        val startPlatform = state.platforms.first()
+        return state.copy(
+            lives = newLives,
+            player = Player(
+                position = Offset(50f, startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE),
+                size = GameConstants.PLAYER_SIZE,
+                isOnGround = true,
+                invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
+            ),
+            barrels = emptyList(),
+            playerDeathTimestamp = 0L
+        )
+    }
+    return state
+}
+
+private fun updatePlayerAnimation(player: Player, animationTimer: Float): Pair<Player, Float> {
+    var newTimer = animationTimer
+    if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
+        newTimer = 0f
+        val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+        val nextFrame = (player.animationFrame + 1) % animation.size
+        return Pair(player.copy(animationFrame = nextFrame), newTimer)
+    }
+    return Pair(player, newTimer)
 }
 
 // ========== BARRELS ==========

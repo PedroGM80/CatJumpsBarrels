@@ -19,14 +19,20 @@ enum class Direction {
 enum class PlayerState {
     /** Quieto sin moverse */
     IDLE,
-    /** Caminando horizontalmente */
-    WALKING,
-    /** En el aire (saltando o cayendo) */
+    /** Corriendo horizontalmente */
+    RUNNING,
+    /** Saltando (en ascenso) */
     JUMPING,
+    /** Cayendo (en descenso) */
+    FALLING,
     /** Subiendo o bajando por una escalera */
     CLIMBING,
-    /** Recibiendo daño (no usado actualmente) */
-    HURT
+    /** Deslizándose (no implementado aún) */
+    SLIDING,
+    /** Recibiendo daño */
+    HURT,
+    /** Muerto */
+    DEAD
 }
 
 /**
@@ -53,7 +59,8 @@ data class Player(
     val direction: Direction = Direction.RIGHT,
     val state: PlayerState = PlayerState.IDLE,
     val invincibleUntil: Long = 0L,
-    val animationFrame: Int = 0
+    val animationFrame: Int = 0,
+    val animationFrameCount: Int = 10
 ) {
     /**
      * Determina si el jugador es actualmente invencible.

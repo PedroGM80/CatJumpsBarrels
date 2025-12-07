@@ -13,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -23,12 +24,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import catjumpsbarrels.composeapp.generated.resources.Res
 import catjumpsbarrels.composeapp.generated.resources.background_industrial
 import catjumpsbarrels.composeapp.generated.resources.barrel_fish
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
+import dev.pgm.game.model.entities.CatAnimation
 import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
@@ -42,10 +45,6 @@ object GameColors {
     val platformDark = Color(0xFFBF360C)
     val ladderMain = Color(0xFFFFC107)
     val ladderDark = Color(0xFFFFA000)
-    val playerBody = Color(0xFF1E88E5)
-    val playerBodyDark = Color(0xFF1565C0)
-    val playerFace = Color(0xFFFFE0B2)
-    val playerHair = Color(0xFF5D4037)
     val dkBody = Color(0xFF6D4C41)
     val dkFace = Color(0xFF8D6E63)
     val barrelMain = Color(0xFF5D4037)
@@ -167,112 +166,24 @@ private fun BoxScope.PauseScreen() {
 }
 
 private fun DrawScope.drawPlayer(player: Player) {
-    val alpha = calculatePlayerAlpha(player)
+    val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+    val frameIndex = player.animationFrame % animation.size
+    val image = animation[frameIndex]
 
-    drawPlayerBody(player, alpha)
-    drawPlayerHead(player, alpha)
-    drawPlayerHair(player, alpha)
-    drawPlayerEyes(player, alpha)
+    val alpha = if (player.isInvincible && (System.currentTimeMillis() / 150) % 2 == 0L) 0.5f else 1f
 
-    if (player.state == PlayerState.WALKING) {
-        drawPlayerLegs(player, alpha)
+    withTransform({
+        translate(left = player.position.x, top = player.position.y)
+        if (player.direction == Direction.LEFT) {
+            scale(scaleX = -1f, scaleY = 1f, pivot = Offset(player.size / 2, player.size / 2))
+        }
+    }) {
+        drawImage(
+            image = image,
+            dstSize = IntSize(player.size.toInt(), player.size.toInt()),
+            alpha = alpha
+        )
     }
-}
-
-private fun calculatePlayerAlpha(player: Player): Float {
-    return if (player.isInvincible && (System.currentTimeMillis() / GameConstants.INVINCIBILITY_BLINK_INTERVAL) % 2 == 0L) {
-        0.5f
-    } else {
-        1f
-    }
-}
-
-private fun DrawScope.drawPlayerBody(player: Player, alpha: Float) {
-    val bodyTopLeft = Offset(
-        player.position.x + 4f,
-        player.position.y + player.size * GameConstants.PLAYER_BODY_V_POS_SCALE
-    )
-    val bodySize = Size(player.size - 8f, player.size * GameConstants.PLAYER_BODY_H_SCALE)
-    val cornerRadius = CornerRadius(6f)
-
-    drawRoundRect(
-        color = GameColors.playerBody.copy(alpha = alpha),
-        topLeft = bodyTopLeft,
-        size = bodySize,
-        cornerRadius = cornerRadius
-    )
-    drawRoundRect(
-        color = GameColors.playerBodyDark.copy(alpha = alpha),
-        topLeft = bodyTopLeft,
-        size = bodySize,
-        cornerRadius = cornerRadius,
-        style = Stroke(width = 2f)
-    )
-}
-
-private fun DrawScope.drawPlayerHead(player: Player, alpha: Float) {
-    val headCenter = Offset(
-        player.position.x + player.size / 2,
-        player.position.y + player.size * GameConstants.PLAYER_HEAD_V_POS_SCALE
-    )
-    drawCircle(
-        color = GameColors.playerFace.copy(alpha = alpha),
-        radius = player.size * GameConstants.PLAYER_HEAD_RADIUS_SCALE,
-        center = headCenter
-    )
-}
-
-private fun DrawScope.drawPlayerHair(player: Player, alpha: Float) {
-    val centerX = player.position.x + player.size / 2
-    val centerY = player.position.y + player.size * GameConstants.PLAYER_HAIR_V_POS_SCALE
-
-    val hairPath = Path().apply {
-        moveTo(centerX - player.size * 0.25f, centerY + 5f)
-        quadraticTo(centerX, centerY - player.size * 0.15f, centerX + player.size * 0.25f, centerY + 5f)
-    }
-    drawPath(
-        path = hairPath,
-        color = GameColors.playerHair.copy(alpha = alpha),
-        style = Stroke(width = 6f)
-    )
-}
-
-private fun DrawScope.drawPlayerEyes(player: Player, alpha: Float) {
-    val eyeOffsetX = if (player.direction == Direction.RIGHT) {
-        GameConstants.PLAYER_EYE_OFFSET_X
-    } else {
-        -GameConstants.PLAYER_EYE_OFFSET_X
-    }
-    val eyeY = player.position.y + player.size * GameConstants.PLAYER_HEAD_V_POS_SCALE
-    val centerX = player.position.x + player.size / 2
-
-    // Left eye
-    drawCircle(color = Color.White.copy(alpha = alpha), radius = 4f, center = Offset(centerX - 6f + eyeOffsetX, eyeY))
-    drawCircle(color = Color.Black.copy(alpha = alpha), radius = 2f, center = Offset(centerX - 6f + eyeOffsetX + 1f, eyeY))
-
-    // Right eye
-    drawCircle(color = Color.White.copy(alpha = alpha), radius = 4f, center = Offset(centerX + 6f + eyeOffsetX, eyeY))
-    drawCircle(color = Color.Black.copy(alpha = alpha), radius = 2f, center = Offset(centerX + 6f + eyeOffsetX + 1f, eyeY))
-}
-
-private fun DrawScope.drawPlayerLegs(player: Player, alpha: Float) {
-    val legOffset = sin(player.animationFrame * GameConstants.PLAYER_LEG_ANIM_SCALE) * 4f
-
-    // Left leg
-    drawRoundRect(
-        color = GameColors.playerBodyDark.copy(alpha = alpha),
-        topLeft = Offset(player.position.x + 8f, player.position.y + player.size - 8f + legOffset),
-        size = Size(8f, 8f),
-        cornerRadius = CornerRadius(2f)
-    )
-
-    // Right leg
-    drawRoundRect(
-        color = GameColors.playerBodyDark.copy(alpha = alpha),
-        topLeft = Offset(player.position.x + player.size - 16f, player.position.y + player.size - 8f - legOffset),
-        size = Size(8f, 8f),
-        cornerRadius = CornerRadius(2f)
-    )
 }
 
 private fun DrawScope.drawDonkeyKong(dk: Boss) {

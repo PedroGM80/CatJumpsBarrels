@@ -22,7 +22,8 @@ data class GameState(
     val isWon: Boolean = false,
     val isPaused: Boolean = false,
     val screenSize: IntSize,
-    val lastScorePopup: ScorePopup? = null
+    val lastScorePopup: ScorePopup? = null,
+    val playerDeathTimestamp: Long = 0L
 ) {
     companion object {
         fun initial(screenSize: IntSize): GameState {
