@@ -14,6 +14,10 @@ import kotlin.math.abs
 class UpdatePlayerUseCase {
 
     operator fun invoke(state: GameState, input: GameInput, deltaTime: Float): GameState {
+        if (input.left || input.right || input.up || input.down || input.jump) {
+            println("LOG 5: UpdatePlayerUseCase - input=$input, playerPos=${state.player.position}")
+        }
+
         if (state.player.state == PlayerState.DEAD) {
             return state
         }
@@ -40,10 +44,19 @@ class UpdatePlayerUseCase {
     ): Player {
         var newPlayer = player
 
+        // Determinar dirección según input
+        var direction = player.direction
+
         // Movimiento horizontal
         val horizontalVelocity = when {
-            input.left -> -GameConstants.MOVE_SPEED
-            input.right -> GameConstants.MOVE_SPEED
+            input.left -> {
+                direction = Direction.LEFT
+                -GameConstants.MOVE_SPEED
+            }
+            input.right -> {
+                direction = Direction.RIGHT
+                GameConstants.MOVE_SPEED
+            }
             else -> 0f
         }
 
@@ -76,6 +89,7 @@ class UpdatePlayerUseCase {
                 position = collision.position,
                 velocity = Offset(horizontalVelocity, 0f),
                 isOnGround = true,
+                direction = direction,
                 state = determinePlayerState(input, isOnGround = true)
             )
         } else {
@@ -83,6 +97,7 @@ class UpdatePlayerUseCase {
                 position = newPosition,
                 velocity = newVelocity,
                 isOnGround = false,
+                direction = direction,
                 state = determinePlayerState(input, isOnGround = false, velocityY = newVelocity.y)
             )
         }

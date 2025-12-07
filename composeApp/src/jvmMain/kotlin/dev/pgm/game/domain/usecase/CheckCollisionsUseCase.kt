@@ -17,31 +17,30 @@ class CheckCollisionsUseCase {
 
     operator fun invoke(state: GameState): GameState {
         if (state.player.state == PlayerState.DEAD) return state
+        if (state.player.isInvincible) return state // No colisión si es invencible
 
-        val playerRect = GameRect(
-            state.player.position.x,
-            state.player.position.y,
-            state.player.size,
-            state.player.size
-        )
+        // Usar hitbox reducida del jugador para colisión más precisa
+        val playerHitbox = state.player.hitbox
 
         for (barrel in state.barrels) {
-            val barrelRect = GameRect(
-                barrel.position.x,
-                barrel.position.y,
-                barrel.size,
-                barrel.size
+            // Hitbox reducida del barril para mejor jugabilidad
+            val barrelHitbox = GameRect(
+                barrel.position.x + 2f,
+                barrel.position.y + 2f,
+                barrel.size - 4f,
+                barrel.size - 4f
             )
 
-            if (!playerRect.overlaps(barrelRect)) continue
+            if (!playerHitbox.overlaps(barrelHitbox)) continue
 
             // Verificar si el jugador saltó sobre el barril
-            if (canJumpOverBarrel(state.player.position.y, barrel, state.player.size)) {
-                if (!barrel.hasBeenJumped) {
-                    return handleBarrelJumped(state, barrel)
-                }
-            } else {
-                // Colisión mortal
+            // Solo cuenta si está cayendo desde arriba
+            val isJumpingOverBarrel = canJumpOverBarrel(state.player, barrel)
+
+            if (isJumpingOverBarrel && !barrel.hasBeenJumped) {
+                return handleBarrelJumped(state, barrel)
+            } else if (!isJumpingOverBarrel) {
+                // Colisión mortal (lateral, frontal, o barril cayendo sobre jugador)
                 return handlePlayerDeath(state)
             }
         }
@@ -49,13 +48,20 @@ class CheckCollisionsUseCase {
         return state
     }
 
-    private fun canJumpOverBarrel(playerY: Float, barrel: Barrel, playerSize: Float): Boolean {
-        val playerBottom = playerY + playerSize
-        val barrelTop = barrel.position.y
-        val barrelBottom = barrel.position.y + barrel.size
+    private fun canJumpOverBarrel(player: dev.pgm.game.model.entities.Player, barrel: Barrel): Boolean {
+        // Solo puede saltar sobre el barril si está cayendo desde arriba
+        val isFallingOrJumping = player.state == PlayerState.FALLING ||
+                                 player.state == PlayerState.JUMPING ||
+                                 player.velocity.y > 0
 
-        return playerBottom >= barrelTop - GameConstants.BARREL_JUMP_TOLERANCE_TOP &&
-                playerBottom <= barrelBottom + GameConstants.BARREL_JUMP_TOLERANCE_BOTTOM
+        if (!isFallingOrJumping) return false
+
+        val playerBottom = player.position.y + player.size
+        val barrelTop = barrel.position.y
+
+        // El jugador debe estar cayendo sobre el barril desde arriba
+        return playerBottom <= barrelTop + GameConstants.BARREL_JUMP_TOLERANCE_TOP &&
+               playerBottom >= barrelTop - GameConstants.BARREL_JUMP_TOLERANCE_TOP
     }
 
     private fun handleBarrelJumped(state: GameState, barrel: Barrel): GameState {
@@ -78,6 +84,7 @@ class CheckCollisionsUseCase {
             lives = newLives,
             isGameOver = isGameOver,
             playerDeathTimestamp = System.currentTimeMillis(),
+            barrels = emptyList(), // Limpiar todos los barriles
             particles = state.particles + createDeathParticles(
                 state.player.position.x,
                 state.player.position.y

@@ -1,7 +1,7 @@
 package dev.pgm.game.di
 
 import dev.pgm.game.domain.usecase.*
-import dev.pgm.game.presentation.viewmodel.GameViewModel
+import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -18,10 +18,12 @@ val gameModule = module {
     factoryOf(::UpdateSingleBarrelUseCase)
     factoryOf(::UpdateBarrelsUseCase)
     factoryOf(::CheckCollisionsUseCase)
+    factoryOf(::SpawnBarrelUseCase)
+    factoryOf(::UpdateParticlesUseCase)
 
     // ========== ViewModel ==========
     // singleOf crea una única instancia (singleton)
-    singleOf(::GameViewModel)
+    singleOf(::GameViewModelComplete)
 }
 
 /**
