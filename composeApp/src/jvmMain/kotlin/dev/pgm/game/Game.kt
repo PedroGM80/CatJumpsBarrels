@@ -427,7 +427,8 @@ private fun updateBarrels(state: GameState): GameState {
 private fun updateSingleBarrel(barrel: Barrel, platforms: List<Platform>, ladders: List<Ladder>, screenHeight: Int): Barrel? {
     if (barrel.position.y > screenHeight + 50) return null
 
-    val rotationSpeed = if (barrel.velocity.x != 0f) abs(barrel.velocity.x) * 0.1f else 0.3f
+    // Rotar según la dirección: positivo = derecha, negativo = izquierda
+    val rotationSpeed = if (barrel.velocity.x != 0f) barrel.velocity.x * 0.1f else 0.3f
     val newRotation = barrel.rotation + rotationSpeed
 
     return when {
@@ -476,47 +477,44 @@ private fun adjustToRampSurface(barrel: Barrel, platform: Platform): Barrel {
 
 private fun moveBarrelDownLadder(barrel: Barrel, platforms: List<Platform>, rotation: Float): Barrel {
     // MECÁNICA ATARI 2600: Caída vertical por escalera, comprobar colisión pixel a pixel
-    val fallStep = 2f  // Bajar 2px por iteración
-    var currentY = barrel.position.y
-    val targetY = barrel.position.y + GameConstants.BARREL_LADDER_FALL_SPEED
+    val fallSpeed = GameConstants.BARREL_LADDER_FALL_SPEED
+    val newY = barrel.position.y + fallSpeed
 
-    // Bajar pixel a pixel (o cada 2px) hasta llegar al objetivo
-    while (currentY < targetY) {
-        currentY += fallStep
+    // Si tenemos targetPlatformIndex, usarlo para saber exactamente dónde aterrizar
+    val targetPlatformIndex = barrel.targetPlatformIndex ?: -1
+    if (targetPlatformIndex >= 0 && targetPlatformIndex < platforms.size) {
+        val targetPlatform = platforms[targetPlatformIndex]
+        val barrelCenterX = barrel.position.x + barrel.size / 2
 
-        // Crear barril temporal en esta posición para chequear
-        val tempBarrel = barrel.copy(position = Offset(barrel.position.x, currentY))
+        // Verificar si el centro del barril está dentro del rango de la plataforma
+        if (barrelCenterX >= targetPlatform.left && barrelCenterX <= targetPlatform.right) {
+            val platformY = targetPlatform.getYAt(barrelCenterX)
 
-        // COMPROBAR si hay plataforma debajo
-        val platformBelow = hasPlatformBelow(tempBarrel, platforms, checkDistance = 2f)
+            // Verificar si hemos llegado a la plataforma
+            if (newY + barrel.size >= platformY) {
+                // ¡Aterrizar en la plataforma!
+                val newDirection = if (targetPlatform.index % 2 == 0) 1f else -1f
 
-        if (platformBelow != null) {
-            // ¡HAY PLATAFORMA! Aterrizar y cambiar a movimiento HORIZONTAL
-            // Determinar dirección según índice de plataforma
-            val newDirection = if (platformBelow.index % 2 == 0) 1f else -1f
-
-            // Ajustar a la superficie de la rampa
-            val adjustedBarrel = adjustToRampSurface(
-                barrel.copy(position = Offset(barrel.position.x, currentY)),
-                platformBelow
-            )
-
-            return adjustedBarrel.copy(
-                velocity = Offset(GameConstants.BARREL_SPEED * newDirection, 0f),
-                isOnLadder = false,
-                isFalling = false,
-                currentPlatformIndex = platformBelow.index,
-                rotation = rotation,
-                lastLadderChecked = -1
-            )
+                return barrel.copy(
+                    position = Offset(barrel.position.x, platformY - barrel.size),
+                    velocity = Offset(GameConstants.BARREL_SPEED * newDirection, 0f),
+                    isOnLadder = false,
+                    isFalling = false,
+                    currentPlatformIndex = targetPlatform.index,
+                    rotation = rotation,
+                    lastLadderChecked = -1,
+                    targetPlatformIndex = null
+                )
+            }
         }
     }
 
     // No encontró plataforma, continuar bajando por la escalera VERTICALMENTE
     return barrel.copy(
-        position = Offset(barrel.position.x, currentY),
-        velocity = Offset(0f, GameConstants.BARREL_LADDER_FALL_SPEED),
-        rotation = rotation
+        position = Offset(barrel.position.x, newY),
+        velocity = Offset(0f, fallSpeed),
+        rotation = rotation,
+        isOnLadder = true
     )
 }
 
@@ -629,7 +627,8 @@ private fun moveBarrelOnPlatform(barrel: Barrel, platforms: List<Platform>, ladd
                 isOnLadder = true,
                 isFalling = false,
                 rotation = rotation,
-                lastLadderChecked = ladderBelow.hashCode()
+                lastLadderChecked = ladderBelow.hashCode(),
+                targetPlatformIndex = ladderBelow.bottomPlatformIndex
             )
         } else {
             // Marcar que ya checamos esta escalera

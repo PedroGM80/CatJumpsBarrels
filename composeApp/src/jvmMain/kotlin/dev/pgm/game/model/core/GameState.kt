@@ -109,29 +109,36 @@ data class GameState(
             }
             
             // Dos escaleras desde la plataforma de DK (plataforma 5) hacia abajo (plataforma 4)
-            // Escalera izquierda
             val dkPlatform = platforms[5]
             val belowDkPlatform = platforms[4]
+            
+            // Escalera izquierda
             val leftDkLadderX = dkPlatform.left + 30f
             val leftDkLadderTop = dkPlatform.getYAt(leftDkLadderX) - 20f
             val leftDkLadderBottom = belowDkPlatform.getYAt(leftDkLadderX)
-            allLadders.add(Ladder(
+            val leftLadder = Ladder(
                 position = Offset(leftDkLadderX, leftDkLadderTop),
                 height = leftDkLadderBottom - leftDkLadderTop,
                 topPlatformIndex = 5,
                 bottomPlatformIndex = 4
-            ))
+            )
+            allLadders.add(leftLadder)
+            println("DEBUG LADDER CREATED: left ladder centerX=${leftLadder.centerX}, topIndex=${leftLadder.topPlatformIndex}")
             
             // Escalera derecha
             val rightDkLadderX = dkPlatform.right - 30f
             val rightDkLadderTop = dkPlatform.getYAt(rightDkLadderX) - 20f
             val rightDkLadderBottom = belowDkPlatform.getYAt(rightDkLadderX)
-            allLadders.add(Ladder(
+            val rightLadder = Ladder(
                 position = Offset(rightDkLadderX, rightDkLadderTop),
                 height = rightDkLadderBottom - rightDkLadderTop,
                 topPlatformIndex = 5,
                 bottomPlatformIndex = 4
-            ))
+            )
+            allLadders.add(rightLadder)
+            println("DEBUG LADDER CREATED: right ladder centerX=${rightLadder.centerX}, topIndex=${rightLadder.topPlatformIndex}")
+            
+            println("DEBUG: DK platform index=${dkPlatform.index}, left=${dkPlatform.left}, right=${dkPlatform.right}")
             
             // Escalera a la princesa
             val princessLadder = createPrincessLadder(platforms[5], princessPlatform)

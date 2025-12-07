@@ -267,9 +267,9 @@ class GameEngine(private var state: GameState) {
             return null
         }
 
-        // Actualizar rotación visual
+        // Actualizar rotación visual según dirección: positivo = derecha, negativo = izquierda
         val rotationSpeed = if (barrel.velocity.x != 0f) {
-            abs(barrel.velocity.x) * GameConstants.BARREL_ROLL_SPEED
+            barrel.velocity.x * GameConstants.BARREL_ROLL_SPEED
         } else {
             GameConstants.BARREL_LADDER_FALL_SPEED * GameConstants.BARREL_ROLL_SPEED
         }
@@ -289,14 +289,19 @@ class GameEngine(private var state: GameState) {
         val fallSpeed = GameConstants.BARREL_LADDER_FALL_SPEED
         val newY = barrel.position.y + fallSpeed
 
+        println("DEBUG LADDER: barrel en escalera, currentPlatformIndex=${barrel.currentPlatformIndex}, targetPlatformIndex=${barrel.targetPlatformIndex}, newY=$newY")
+
         // Buscar la plataforma inferior donde debe aterrizar
-        val targetPlatformIndex = barrel.currentPlatformIndex - 1
-        if (targetPlatformIndex >= 0) {
+        val targetPlatformIndex = barrel.targetPlatformIndex ?: (barrel.currentPlatformIndex - 1)
+        if (targetPlatformIndex >= 0 && targetPlatformIndex < state.platforms.size) {
             val targetPlatform = state.platforms[targetPlatformIndex]
             val platformY = targetPlatform.getYAt(barrel.centerX)
 
+            println("DEBUG LADDER: targetPlatformIndex=$targetPlatformIndex, platformY=$platformY, barrelBottom=${newY + barrel.size}")
+
             // Verificar si el barril ha llegado a la plataforma
             if (newY + barrel.size >= platformY) {
+                println("DEBUG LADDER: barril aterriza en plataforma $targetPlatformIndex")
                 // Aterriza en la plataforma inferior y cambia de dirección
                 val newDirection = getBarrelDirectionForPlatform(targetPlatformIndex)
                 return barrel.copy(
@@ -305,7 +310,8 @@ class GameEngine(private var state: GameState) {
                     currentPlatformIndex = targetPlatformIndex,
                     velocity = Offset(GameConstants.BARREL_SPEED * newDirection, 0f),
                     rotation = rotation,
-                    lastLadderChecked = -1
+                    lastLadderChecked = -1,
+                    targetPlatformIndex = null
                 )
             }
         }
@@ -313,7 +319,8 @@ class GameEngine(private var state: GameState) {
         return barrel.copy(
             position = Offset(barrel.position.x, newY),
             velocity = Offset(0f, fallSpeed),
-            rotation = rotation
+            rotation = rotation,
+            isOnLadder = true
         )
     }
 
@@ -365,25 +372,24 @@ class GameEngine(private var state: GameState) {
         // Calcular Y según la pendiente de la plataforma
         val newY = platform.getYAt(newX + barrel.size / 2) - barrel.size
 
-        // Verificar bordes de la plataforma PRIMERO
-        val atLeftEdge = newX <= platform.left
-        val atRightEdge = newX + barrel.size >= platform.right
-
-        if (atLeftEdge || atRightEdge) {
-            return handleBarrelAtEdge(barrel, platform, atLeftEdge, rotation)
+        // PRIMERO verificar si el barril está sobre una escalera (puede bajar)
+        if (platform.index >= 4) {
+            println("DEBUG PLATFORM: barril en plataforma ${platform.index}, x=$newX, centerX=${newX + barrel.size/2}")
         }
-
-        // Verificar si el barril está sobre una escalera (puede bajar)
         val ladderBelow = findLadderBelowBarrel(barrel.copy(position = Offset(newX, newY)), platform)
         if (ladderBelow != null && barrel.lastLadderChecked != ladderBelow.hashCode()) {
             // Probabilidad aleatoria de bajar por la escalera (como en DK original)
-            if (Random.nextFloat() < GameConstants.BARREL_LADDER_PROBABILITY) {
+            val randomValue = Random.nextFloat()
+            println("DEBUG: Escalera encontrada! random=$randomValue, threshold=${GameConstants.BARREL_LADDER_PROBABILITY}")
+            if (randomValue < GameConstants.BARREL_LADDER_PROBABILITY) {
+                println("DEBUG: BARRIL VA A BAJAR POR ESCALERA!")
                 return barrel.copy(
                     position = Offset(ladderBelow.centerX - barrel.size / 2, newY),
                     isOnLadder = true,
                     velocity = Offset(0f, GameConstants.BARREL_LADDER_FALL_SPEED),
                     rotation = rotation,
-                    lastLadderChecked = ladderBelow.hashCode()
+                    lastLadderChecked = ladderBelow.hashCode(),
+                    targetPlatformIndex = ladderBelow.bottomPlatformIndex
                 )
             } else {
                 // Marcamos que ya verificamos esta escalera para no preguntar de nuevo
@@ -393,6 +399,14 @@ class GameEngine(private var state: GameState) {
                     lastLadderChecked = ladderBelow.hashCode()
                 )
             }
+        }
+
+        // DESPUES verificar bordes de la plataforma
+        val atLeftEdge = newX <= platform.left
+        val atRightEdge = newX + barrel.size >= platform.right
+
+        if (atLeftEdge || atRightEdge) {
+            return handleBarrelAtEdge(barrel, platform, atLeftEdge, rotation)
         }
 
         return barrel.copy(
@@ -405,10 +419,20 @@ class GameEngine(private var state: GameState) {
      * Busca una escalera debajo del barril en la plataforma actual
      */
     private fun findLadderBelowBarrel(barrel: Barrel, platform: Platform): Ladder? {
-        return state.ladders.find { ladder ->
-            ladder.topPlatformIndex == platform.index &&
-            abs(barrel.centerX - ladder.centerX) < GameConstants.BARREL_OVER_LADDER_TOLERANCE
+        for (ladder in state.ladders) {
+            val matchesPlatform = ladder.topPlatformIndex == platform.index
+            val distance = abs(barrel.centerX - ladder.centerX)
+            val withinTolerance = distance < GameConstants.BARREL_OVER_LADDER_TOLERANCE
+            
+            if (platform.index >= 4) {
+                println("DEBUG FIND: platform=${platform.index}, ladder.topIndex=${ladder.topPlatformIndex}, barrelCenterX=${barrel.centerX}, ladderCenterX=${ladder.centerX}, distance=$distance, tolerance=${GameConstants.BARREL_OVER_LADDER_TOLERANCE}, match=$matchesPlatform, within=$withinTolerance")
+            }
+            
+            if (matchesPlatform && withinTolerance) {
+                return ladder
+            }
         }
+        return null
     }
 
     /**
@@ -482,6 +506,8 @@ class GameEngine(private var state: GameState) {
             val dkPlatform = state.platforms[5]
             val spawnX = state.enemy.position.x + state.enemy.size
             val spawnY = dkPlatform.getYAt(spawnX) - GameConstants.BARREL_SIZE
+
+            println("DEBUG SPAWN: Spawning barrel at x=$spawnX, y=$spawnY, platformIndex=${dkPlatform.index}")
 
             val newBarrel = Barrel(
                 position = Offset(spawnX, spawnY),

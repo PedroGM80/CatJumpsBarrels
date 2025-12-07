@@ -115,10 +115,10 @@ object GameConstants {
     const val BARREL_SCREEN_CLEANUP_OFFSET = 50f
 
     /** Probabilidad de que un barril baje por una escalera (0.0 a 1.0) */
-    const val BARREL_LADDER_PROBABILITY = 0.35f
+    const val BARREL_LADDER_PROBABILITY = 0.20f
 
     /** Tolerancia horizontal para detectar si el barril está sobre una escalera */
-    const val BARREL_OVER_LADDER_TOLERANCE = 20f
+    const val BARREL_OVER_LADDER_TOLERANCE = 60f
 
     /** Factor de aceleración por pendiente */
     const val BARREL_SLOPE_ACCELERATION = 0.8f

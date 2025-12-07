@@ -29,7 +29,8 @@ data class Barrel(
     val isFalling: Boolean = false,
     val currentPlatformIndex: Int = 0,
     val hasBeenJumped: Boolean = false,
-    val lastLadderChecked: Int = -1
+    val lastLadderChecked: Int = -1,
+    val targetPlatformIndex: Int? = null
 ) {
     /**
      * Hitbox reducida del barril para colisiones.
