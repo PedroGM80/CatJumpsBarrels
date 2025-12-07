@@ -8,6 +8,7 @@ import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.utils.GameRect
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
+import kotlinx.coroutines.*
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -29,7 +30,7 @@ class GameEngine(private var state: GameState) {
             state = updatePlayer(input)
         } else {
             // Still update animation during death
-            state = state.copy(player = updatePlayerAnimation(state.player))
+            state = state.copy(player = updatePlayerAnimation(state.player, GameInput()))
         }
 
         state = updateDonkeyKong()
@@ -43,7 +44,7 @@ class GameEngine(private var state: GameState) {
 
     private fun updatePlayer(input: GameInput): GameState {
         var player = state.player
-        player = updatePlayerAnimation(player)
+        player = updatePlayerAnimation(player, input)
 
         val nearLadder = findNearbyLadder(player, state.ladders)
         val shouldClimb = player.isClimbing || (nearLadder != null && (input.up || input.down))
@@ -101,10 +102,21 @@ class GameEngine(private var state: GameState) {
         return playerCenterX >= platform.left && playerCenterX <= platform.right
     }
 
-    private fun updatePlayerAnimation(player: Player): Player {
+    private fun updatePlayerAnimation(player: Player, input: GameInput): Player {
+        // Si está escalando pero no presiona arriba/abajo, pausar la animación
+        val isClimbingButStationary = player.state == PlayerState.CLIMBING &&
+                                       !input.up && !input.down
+
+        if (isClimbingButStationary) {
+            return player // No actualizar el frame, mantener la animación pausada
+        }
+
         if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
             animationTimer = 0f
             val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+            if (animation.isEmpty()) {
+                return player // Evitar división por cero
+            }
             val nextFrame = (player.animationFrame + 1) % animation.size
             return player.copy(animationFrame = nextFrame)
         }
@@ -129,17 +141,23 @@ class GameEngine(private var state: GameState) {
         }
         
         val playerCenterX = newX + player.size / 2
-        val topTargetY = topPlatform.getYAt(playerCenterX) - player.size
-        val bottomTargetY = bottomPlatform.getYAt(playerCenterX) - player.size
+        val topPlatformY = topPlatform.getYAt(playerCenterX)
+        val bottomPlatformY = bottomPlatform.getYAt(playerCenterX)
 
         var newY = player.position.y
         if (input.up) newY -= GameConstants.CLIMB_SPEED
         if (input.down) newY += GameConstants.CLIMB_SPEED
 
-        // Si sube y llega al tope, colocar en plataforma superior
-        if (input.up && newY <= topTargetY + GameConstants.CLIMB_SPEED) {
+        // Calcular la parte inferior del jugador después del movimiento
+        val playerBottom = newY + player.size
+
+        // Tolerancia generosa que escala con el tamaño del jugador
+        val climbTolerance = player.size * 0.6f
+
+        // Si sube: verificar si la parte inferior del jugador está cerca de la plataforma superior
+        if (input.up && playerBottom <= topPlatformY + climbTolerance) {
             return player.copy(
-                position = Offset(newX, topTargetY),
+                position = Offset(newX, topPlatformY - player.size),
                 isClimbing = false,
                 velocity = Offset.Zero,
                 isOnGround = true,
@@ -147,10 +165,10 @@ class GameEngine(private var state: GameState) {
             )
         }
 
-        // Si baja y llega al fondo, colocar en plataforma inferior
-        if (input.down && newY >= bottomTargetY - GameConstants.CLIMB_SPEED) {
+        // Si baja: verificar si la parte inferior del jugador está cerca de la plataforma inferior
+        if (input.down && playerBottom >= bottomPlatformY - climbTolerance) {
             return player.copy(
-                position = Offset(newX, bottomTargetY),
+                position = Offset(newX, bottomPlatformY - player.size),
                 isClimbing = false,
                 velocity = Offset.Zero,
                 isOnGround = true,
@@ -175,7 +193,8 @@ class GameEngine(private var state: GameState) {
     }
 
     private fun determineClimbingState(input: GameInput): PlayerState {
-        return if (input.up || input.down) PlayerState.CLIMBING else PlayerState.IDLE
+        // Siempre mantener CLIMBING mientras está en la escalera
+        return PlayerState.CLIMBING
     }
 
     private fun createPlayerOnPlatform(player: Player, x: Float, platform: Platform): Player {
@@ -273,7 +292,17 @@ class GameEngine(private var state: GameState) {
     // ========== BARREL LOGIC (DONKEY KONG STYLE) ==========
 
     private fun updateBarrels(): GameState {
-        val updatedBarrels = state.barrels.mapNotNull { barrel -> updateBarrelMovement(barrel) }
+        // Procesar barriles en paralelo si hay más de 3 para mejor rendimiento
+        val updatedBarrels = if (state.barrels.size > 3) {
+            runBlocking(Dispatchers.Default) {
+                state.barrels.map { barrel ->
+                    async { updateBarrelMovement(barrel) }
+                }.mapNotNull { it.await() }
+            }
+        } else {
+            // Para pocos barriles, procesamiento secuencial es más eficiente
+            state.barrels.mapNotNull { barrel -> updateBarrelMovement(barrel) }
+        }
         return state.copy(barrels = updatedBarrels)
     }
 
@@ -619,7 +648,8 @@ class GameEngine(private var state: GameState) {
         return ladders.find { ladder ->
             val horizontalClose = abs(playerCenterX - ladder.centerX) < GameConstants.LADDER_HORIZONTAL_TOLERANCE
             // Permitir un margen extra arriba y abajo para no perder la escalera al llegar al final
-            val verticalMargin = player.size * 0.5f
+            // Margen más generoso para jugadores grandes que necesitan subir más para alcanzar plataformas
+            val verticalMargin = player.size * 0.8f
             val onLadderVertical = playerBottom > ladder.top - verticalMargin && playerTop < ladder.bottom + verticalMargin
             horizontalClose && onLadderVertical
         }
@@ -637,14 +667,32 @@ class GameEngine(private var state: GameState) {
     }
 
     private fun updateParticles(deltaTime: Float): GameState {
-        val updated = state.particles.mapNotNull { p ->
-            val newAge = p.age + deltaTime
-            if (newAge >= p.lifetime) null
-            else p.copy(
-                position = p.position.plus(p.velocity.times(deltaTime)),
-                velocity = p.velocity.copy(y = p.velocity.y + GameConstants.PARTICLE_GRAVITY * deltaTime),
-                age = newAge
-            )
+        // Procesar partículas en paralelo si hay más de 10 para mejor rendimiento
+        val updated = if (state.particles.size > 10) {
+            runBlocking(Dispatchers.Default) {
+                state.particles.map { p ->
+                    async {
+                        val newAge = p.age + deltaTime
+                        if (newAge >= p.lifetime) null
+                        else p.copy(
+                            position = p.position.plus(p.velocity.times(deltaTime)),
+                            velocity = p.velocity.copy(y = p.velocity.y + GameConstants.PARTICLE_GRAVITY * deltaTime),
+                            age = newAge
+                        )
+                    }
+                }.mapNotNull { it.await() }
+            }
+        } else {
+            // Para pocas partículas, procesamiento secuencial es más eficiente
+            state.particles.mapNotNull { p ->
+                val newAge = p.age + deltaTime
+                if (newAge >= p.lifetime) null
+                else p.copy(
+                    position = p.position.plus(p.velocity.times(deltaTime)),
+                    velocity = p.velocity.copy(y = p.velocity.y + GameConstants.PARTICLE_GRAVITY * deltaTime),
+                    age = newAge
+                )
+            }
         }
         return state.copy(particles = updated)
     }

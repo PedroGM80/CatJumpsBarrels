@@ -115,7 +115,7 @@ data class GameState(
 
             // Escalera izquierda
             val leftEnemyLadderX = enemyPlatform.left + 30f
-            val leftEnemyLadderTop = enemyPlatform.getYAt(leftEnemyLadderX) - 20f
+            val leftEnemyLadderTop = enemyPlatform.getYAt(leftEnemyLadderX)
             val leftEnemyLadderBottom = belowEnemyPlatform.getYAt(leftEnemyLadderX)
             val leftLadder = Ladder(
                 position = Offset(leftEnemyLadderX, leftEnemyLadderTop),
@@ -128,7 +128,7 @@ data class GameState(
 
             // Escalera derecha
             val rightEnemyLadderX = enemyPlatform.right - 30f
-            val rightEnemyLadderTop = enemyPlatform.getYAt(rightEnemyLadderX) - 20f
+            val rightEnemyLadderTop = enemyPlatform.getYAt(rightEnemyLadderX)
             val rightEnemyLadderBottom = belowEnemyPlatform.getYAt(rightEnemyLadderX)
             val rightLadder = Ladder(
                 position = Offset(rightEnemyLadderX, rightEnemyLadderTop),
@@ -155,9 +155,8 @@ data class GameState(
             } else {
                 bottomPlatform.left + GameConstants.LADDER_OFFSET_FROM_EDGE
             }
-            // Extender la escalera un poco por encima de la plataforma superior
-            // para que el jugador pueda completar la subida
-            val ladderTop = topPlatform.getYAt(ladderX) - 20f
+            // Escalera llega exactamente al filo superior de la plataforma
+            val ladderTop = topPlatform.getYAt(ladderX)
             val ladderBottom = bottomPlatform.getYAt(ladderX)
             val ladderHeight = ladderBottom - ladderTop
 
@@ -187,7 +186,7 @@ data class GameState(
                 minOf(bottomPlatform.right, topPlatform.right) - 30f
             )
             
-            val ladderTop = topPlatform.getYAt(clampedX) - 20f
+            val ladderTop = topPlatform.getYAt(clampedX)
             val ladderBottom = bottomPlatform.getYAt(clampedX)
             val ladderHeight = ladderBottom - ladderTop
 
@@ -201,8 +200,8 @@ data class GameState(
 
         private fun createPrincessLadder(enemyPlatform: Platform, princessPlatform: Platform): Ladder {
             val ladderX = princessPlatform.left + GameConstants.LADDER_OFFSET_FROM_PRINCESS
-            // Extender la escalera un poco por encima
-            val ladderTop = princessPlatform.top - 20f
+            // Escalera llega exactamente al filo superior de la plataforma
+            val ladderTop = princessPlatform.top
             val ladderHeight = enemyPlatform.getYAt(ladderX) - ladderTop
 
             return Ladder(

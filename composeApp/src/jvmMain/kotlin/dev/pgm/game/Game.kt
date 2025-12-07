@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import kotlinx.coroutines.*
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
@@ -106,11 +107,11 @@ fun main() = application {
                     newState = checkAndRespawnPlayer(newState)
 
                     if (newState.player.state == PlayerState.DEAD) {
-                        val (p, t) = updatePlayerAnimation(newState.player, animationTimer + deltaTime)
+                        val (p, t) = updatePlayerAnimation(newState.player, animationTimer + deltaTime, GameInput())
                         animationTimer = t
                         newState = newState.copy(player = p)
                     } else {
-                        val (p, t) = updatePlayerAnimation(newState.player, animationTimer + deltaTime)
+                        val (p, t) = updatePlayerAnimation(newState.player, animationTimer + deltaTime, input)
                         animationTimer = t
                         newState = newState.copy(player = p)
 
@@ -209,8 +210,9 @@ private fun findNearbyLadder(player: Player, ladders: List<Ladder>): Ladder? {
         // 3. Está parado en la plataforma superior (cerca del top) - PARA BAJAR
 
         val onLadder = playerBottom > ladder.top && playerTop < ladder.bottom
-        val nearBottom = abs(playerBottom - ladder.bottom) < 30f  // Tolerancia para plataforma inferior
-        val nearTop = abs(playerBottom - ladder.top) < 30f  // Tolerancia para plataforma superior
+        // Tolerancias más generosas para jugadores grandes que necesitan subir más
+        val nearBottom = abs(playerBottom - ladder.bottom) < player.size  // Escala con tamaño del jugador
+        val nearTop = abs(playerBottom - ladder.top) < player.size  // Escala con tamaño del jugador
 
         horizontalClose && (onLadder || nearBottom || nearTop)
     }
@@ -272,6 +274,9 @@ private fun handleClimbing(player: Player, input: GameInput, ladder: Ladder?, pl
     // VERIFICAR PRIMERO si está llegando a una plataforma ANTES de mover
     // Esto es CRÍTICO para que funcione correctamente
 
+    // Tolerancia generosa que escala con el tamaño del jugador
+    val climbTolerance = player.size * 0.6f
+
     // Verificar plataforma SUPERIOR (cuando sube)
     if (topPlatform != null && input.up) {
         val topPlatformY = topPlatform.getYAt(playerCenterX)
@@ -280,8 +285,8 @@ private fun handleClimbing(player: Player, input: GameInput, ladder: Ladder?, pl
         // Si está dentro del rango horizontal de la plataforma
         if (playerCenterX >= topPlatform.left && playerCenterX <= topPlatform.right) {
             // Si el bottom del jugador está CERCA de la superficie de la plataforma
-            // Tolerancia amplia: de 20px abajo a 5px arriba de la plataforma
-            if (currentBottom >= topPlatformY - 20f && currentBottom <= topPlatformY + 5f) {
+            // Tolerancia generosa que escala con el tamaño del jugador
+            if (currentBottom >= topPlatformY - climbTolerance && currentBottom <= topPlatformY + climbTolerance) {
                 // SUBIR A LA PLATAFORMA
                 return player.copy(
                     position = Offset(newX, topPlatformY - player.size),
@@ -302,7 +307,7 @@ private fun handleClimbing(player: Player, input: GameInput, ladder: Ladder?, pl
         // Si está dentro del rango horizontal de la plataforma
         if (playerCenterX >= bottomPlatform.left && playerCenterX <= bottomPlatform.right) {
             // Si el bottom del jugador está CERCA de la superficie de la plataforma
-            if (currentBottom >= bottomPlatformY - 5f && currentBottom <= bottomPlatformY + 20f) {
+            if (currentBottom >= bottomPlatformY - climbTolerance && currentBottom <= bottomPlatformY + climbTolerance) {
                 // BAJAR A LA PLATAFORMA
                 return player.copy(
                     position = Offset(newX, bottomPlatformY - player.size),
@@ -323,7 +328,8 @@ private fun handleClimbing(player: Player, input: GameInput, ladder: Ladder?, pl
     }
 
     // Limitar movimiento dentro de los límites de la escalera
-    newY = newY.coerceIn(ladder.top - 5f, ladder.bottom - player.size + 5f)
+    // Permitir margen extra arriba para que jugadores grandes puedan alcanzar las plataformas
+    newY = newY.coerceIn(ladder.top - climbTolerance, ladder.bottom - player.size + 5f)
     newX = newX.coerceIn(0f, GameConstants.LEVEL_WIDTH - player.size)
 
     return player.copy(
@@ -331,7 +337,7 @@ private fun handleClimbing(player: Player, input: GameInput, ladder: Ladder?, pl
         isClimbing = true,
         velocity = Offset.Zero,
         isOnGround = false,
-        state = if (input.up || input.down) PlayerState.CLIMBING else PlayerState.IDLE
+        state = PlayerState.CLIMBING  // Mantener estado CLIMBING incluso sin movimiento
     )
 }
 
@@ -460,8 +466,17 @@ private fun checkAndRespawnPlayer(state: GameState): GameState {
     return state
 }
 
-private fun updatePlayerAnimation(player: Player, animationTimer: Float): Pair<Player, Float> {
+private fun updatePlayerAnimation(player: Player, animationTimer: Float, input: GameInput): Pair<Player, Float> {
     var newTimer = animationTimer
+
+    // Si está escalando pero no presiona arriba/abajo, pausar la animación
+    val isClimbingButStationary = player.state == PlayerState.CLIMBING &&
+                                   !input.up && !input.down
+
+    if (isClimbingButStationary) {
+        return Pair(player, newTimer) // No actualizar el frame, mantener la animación pausada
+    }
+
     if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
         newTimer = 0f
         val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
@@ -477,8 +492,20 @@ private fun updatePlayerAnimation(player: Player, animationTimer: Float): Pair<P
 // ========== BARRELS ==========
 
 private fun updateBarrels(state: GameState): GameState {
-    val updatedBarrels = state.barrels.mapNotNull { barrel ->
-        updateSingleBarrel(barrel, state.platforms, state.ladders, state.screenSize.height)
+    // Procesar barriles en paralelo si hay más de 3 para mejor rendimiento
+    val updatedBarrels = if (state.barrels.size > 3) {
+        runBlocking(Dispatchers.Default) {
+            state.barrels.map { barrel ->
+                async {
+                    updateSingleBarrel(barrel, state.platforms, state.ladders, state.screenSize.height)
+                }
+            }.mapNotNull { it.await() }
+        }
+    } else {
+        // Para pocos barriles, procesamiento secuencial es más eficiente
+        state.barrels.mapNotNull { barrel ->
+            updateSingleBarrel(barrel, state.platforms, state.ladders, state.screenSize.height)
+        }
     }
     return state.copy(barrels = updatedBarrels)
 }

@@ -24,6 +24,9 @@ kotlin {
             // Coil para carga de imágenes moderna
             implementation("io.coil-kt.coil3:coil-compose:3.0.4")
             implementation("io.coil-kt.coil3:coil-compose-core:3.0.4")
+
+            // Coroutines para procesamiento paralelo y asíncrono
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
