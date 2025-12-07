@@ -281,22 +281,6 @@ object GameConstants {
     /** Offset de los brazos cuando el enemigo lanza un barril */
     const val ENEMY_ARM_THROW_OFFSET = -10f
 
-    // Princesa
-    /** Posición vertical del vestido de la princesa */
-    const val PRINCESS_DRESS_V_POS_SCALE = 0.35f
-
-    /** Escala del radio de la cabeza de la princesa */
-    const val PRINCESS_HEAD_RADIUS_SCALE = 0.25f
-
-    /** Posición vertical de la cabeza de la princesa */
-    const val PRINCESS_HEAD_V_POS_SCALE = 0.2f
-
-    /** Escala horizontal del cabello de la princesa */
-    const val PRINCESS_HAIR_H_SCALE = 0.7f
-
-    /** Posición vertical del cabello de la princesa */
-    const val PRINCESS_HAIR_V_POS_SCALE = 0.35f
-
     // ========== Configuración de Partículas ==========
 
     /** Gravedad aplicada a las partículas */

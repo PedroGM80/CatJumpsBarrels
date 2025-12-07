@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import catjumpsbarrels.composeapp.generated.resources.Res
 import catjumpsbarrels.composeapp.generated.resources.background_industrial
+import catjumpsbarrels.composeapp.generated.resources.barrel_fish
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.*
@@ -46,10 +48,6 @@ object GameColors {
     val playerHair = Color(0xFF5D4037)
     val dkBody = Color(0xFF6D4C41)
     val dkFace = Color(0xFF8D6E63)
-    val princessDress = Color(0xFFEC407A)
-    val princessDressDark = Color(0xFFC2185B)
-    val princessHair = Color(0xFFFFE082)
-    val princessCrown = Color(0xFFFFD700)
     val barrelMain = Color(0xFF5D4037)
     val barrelDark = Color(0xFF3E2723)
     val barrelHighlight = Color(0xFF795548)
@@ -62,6 +60,8 @@ object GameColors {
 
 @Composable
 fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
+    val barrelFishPainter = painterResource(Res.drawable.barrel_fish)
+
     Box(modifier = modifier) {
         // Fondo de imagen
         Image(
@@ -85,7 +85,7 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
                 state.platforms.forEach { drawPlatform(it) }
                 state.ladders.forEach { drawLadder(it) }
                 drawDonkeyKong(state.enemy)
-                drawPrincess(state.winObjetive)
+                drawPrincess(state.winObjetive, barrelFishPainter)
                 state.barrels.forEach { drawBarrel(it) }
                 drawPlayer(state.player)
                 state.particles.forEach { drawParticle(it) }
@@ -294,90 +294,17 @@ private fun DrawScope.drawDonkeyKong(dk: Boss) {
     drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + size - 10f, pos.y + size * 0.4f + armOffset), size = Size(20f, 35f))
 }
 
-private fun DrawScope.drawPrincess(winObjetive: WinObjetive) {
-    drawPrincessDress(winObjetive)
-    drawPrincessHead(winObjetive)
-    drawPrincessHair(winObjetive)
-    drawPrincessCrown(winObjetive)
-    drawPrincessFace(winObjetive)
-}
-
-private fun DrawScope.drawPrincessDress(winObjetive: WinObjetive) {
-    val pos = winObjetive.position
-    val size = winObjetive.size
-
-    val dressPath = Path().apply {
-        moveTo(pos.x + size / 2, pos.y + size * GameConstants.PRINCESS_DRESS_V_POS_SCALE)
-        lineTo(pos.x - 2f, pos.y + size)
-        lineTo(pos.x + size + 2f, pos.y + size)
-        close()
-    }
-
-    drawPath(path = dressPath, color = GameColors.princessDress)
-    drawPath(path = dressPath, color = GameColors.princessDressDark, style = Stroke(width = 2f))
-}
-
-private fun DrawScope.drawPrincessHead(winObjetive: WinObjetive) {
-    val headCenter = Offset(
-        winObjetive.position.x + winObjetive.size / 2,
-        winObjetive.position.y + winObjetive.size * GameConstants.PRINCESS_HEAD_V_POS_SCALE
-    )
-
-    drawCircle(
-        color = GameColors.playerFace,
-        radius = winObjetive.size * GameConstants.PRINCESS_HEAD_RADIUS_SCALE,
-        center = headCenter
-    )
-}
-
-private fun DrawScope.drawPrincessHair(winObjetive: WinObjetive) {
-    val hairTopLeft = Offset(
-        winObjetive.position.x + winObjetive.size * 0.15f,
-        winObjetive.position.y - 2f
-    )
-    val hairSize = Size(
-        winObjetive.size * GameConstants.PRINCESS_HAIR_H_SCALE,
-        winObjetive.size * GameConstants.PRINCESS_HAIR_V_POS_SCALE
-    )
-
-    drawOval(color = GameColors.princessHair, topLeft = hairTopLeft, size = hairSize)
-}
-
-private fun DrawScope.drawPrincessCrown(winObjetive: WinObjetive) {
-    val centerX = winObjetive.position.x + winObjetive.size / 2
-    val baseY = winObjetive.position.y - 8f
-
-    for (i in 0..2) {
-        val crownPath = Path().apply {
-            val baseX = centerX - 8 + i * 8
-            moveTo(baseX, baseY + 10f)
-            lineTo(baseX - 4f, baseY + 10f)
-            lineTo(baseX, baseY)
-            lineTo(baseX + 4f, baseY + 10f)
-            close()
+private fun DrawScope.drawPrincess(winObjetive: WinObjetive, painter: Painter) {
+    withTransform({
+        translate(
+            left = winObjetive.position.x,
+            top = winObjetive.position.y
+        )
+    }) {
+        with(painter) {
+            draw(Size(winObjetive.size, winObjetive.size))
         }
-        drawPath(path = crownPath, color = GameColors.princessCrown)
     }
-}
-
-private fun DrawScope.drawPrincessFace(winObjetive: WinObjetive) {
-    val pos = winObjetive.position
-    val size = winObjetive.size
-
-    // Eyes
-    drawCircle(color = Color.Black, radius = 2f, center = Offset(pos.x + size * 0.4f, pos.y + size * 0.18f))
-    drawCircle(color = Color.Black, radius = 2f, center = Offset(pos.x + size * 0.6f, pos.y + size * 0.18f))
-
-    // Smile
-    drawArc(
-        color = Color(0xFFE91E63),
-        startAngle = 0f,
-        sweepAngle = 180f,
-        useCenter = false,
-        topLeft = Offset(pos.x + size * 0.35f, pos.y + size * 0.22f),
-        size = Size(size * 0.3f, size * 0.12f),
-        style = Stroke(width = 1.5f)
-    )
 }
 
 private fun DrawScope.drawBarrel(barrel: Barrel) {
