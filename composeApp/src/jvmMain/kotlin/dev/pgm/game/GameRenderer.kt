@@ -167,6 +167,8 @@ private fun BoxScope.PauseScreen() {
 
 private fun DrawScope.drawPlayer(player: Player) {
     val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+    if (animation.isEmpty()) return // Evitar división por cero si la animación está vacía
+
     val frameIndex = player.animationFrame % animation.size
     val image = animation[frameIndex]
 

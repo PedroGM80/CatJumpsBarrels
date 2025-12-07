@@ -465,6 +465,9 @@ private fun updatePlayerAnimation(player: Player, animationTimer: Float): Pair<P
     if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
         newTimer = 0f
         val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+        if (animation.isEmpty()) {
+            return Pair(player, newTimer) // Evitar división por cero
+        }
         val nextFrame = (player.animationFrame + 1) % animation.size
         return Pair(player.copy(animationFrame = nextFrame), newTimer)
     }

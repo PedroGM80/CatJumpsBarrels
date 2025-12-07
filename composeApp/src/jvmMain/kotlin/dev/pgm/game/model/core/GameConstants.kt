@@ -157,7 +157,7 @@ object GameConstants {
     // ========== Tamaños de Sprites ==========
 
     /** Tamaño del sprite del jugador */
-    const val PLAYER_SIZE = 30f
+    const val PLAYER_SIZE = 60f
 
     /** Tamaño del sprite del enemigo */
     const val ENEMY_SIZE = 60f

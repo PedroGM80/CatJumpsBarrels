@@ -20,6 +20,10 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            // Coil para carga de imágenes moderna
+            implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+            implementation("io.coil-kt.coil3:coil-compose-core:3.0.4")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
