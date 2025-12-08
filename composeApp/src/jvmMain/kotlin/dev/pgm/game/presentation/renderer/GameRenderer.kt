@@ -29,6 +29,7 @@ import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.entities.Direction
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
+import dev.pgm.game.presentation.theme.GameFonts
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
@@ -91,7 +92,7 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
 
 @Composable
 private fun BoxScope.HUD(state: GameState) {
-    val hudStyle = TextStyle(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+    val hudStyle = TextStyle(fontWeight = FontWeight.Bold, fontFamily = GameFonts.GameFont)
     Column(modifier = Modifier.align(Alignment.TopStart).padding(GameConstants.HUD_PADDING.dp)) {
         Text("SCORE", style = hudStyle.copy(color = GameColors.textPrimary.copy(alpha = 0.7f), fontSize = GameConstants.HUD_SCORE_TITLE_SIZE.sp))
         Text("${state.score}".padStart(6, '0'), style = hudStyle.copy(color = GameColors.textScore, fontSize = GameConstants.HUD_SCORE_VALUE_SIZE.sp))
@@ -120,7 +121,7 @@ private fun BoxScope.HUD(state: GameState) {
                 color = Color(0xFFFFD700),  // Dorado
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
+                fontFamily = GameFonts.GameFont
             )
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -130,7 +131,7 @@ private fun BoxScope.HUD(state: GameState) {
                 color = Color(0xFFFFFFFF),  // Blanco puro
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                fontFamily = FontFamily.Monospace
+                fontFamily = GameFonts.GameFont
             )
         )
     }
@@ -138,7 +139,7 @@ private fun BoxScope.HUD(state: GameState) {
 
 @Composable
 private fun BoxScope.GameOverScreen(state: GameState) {
-    val screenStyle = TextStyle(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+    val screenStyle = TextStyle(fontWeight = FontWeight.Bold, fontFamily = GameFonts.GameFont)
     Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("GAME OVER", style = screenStyle.copy(color = GameColors.textGameOver, fontSize = GameConstants.GAMEOVER_TITLE_SIZE.sp))
         Spacer(modifier = Modifier.height(16.dp))
@@ -150,7 +151,7 @@ private fun BoxScope.GameOverScreen(state: GameState) {
 
 @Composable
 private fun BoxScope.WinScreen(state: GameState) {
-    val screenStyle = TextStyle(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+    val screenStyle = TextStyle(fontWeight = FontWeight.Bold, fontFamily = GameFonts.GameFont)
     Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("YOU WIN!", style = screenStyle.copy(color = GameColors.textWin, fontSize = GameConstants.WIN_TITLE_SIZE.sp))
         Spacer(modifier = Modifier.height(16.dp))
@@ -164,9 +165,9 @@ private fun BoxScope.WinScreen(state: GameState) {
 private fun BoxScope.PauseScreen() {
     Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.7f))) {
         Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("PAUSED", style = TextStyle(color = GameColors.textPrimary, fontSize = GameConstants.PAUSE_TITLE_SIZE.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace))
+            Text("PAUSED", style = TextStyle(color = GameColors.textPrimary, fontSize = GameConstants.PAUSE_TITLE_SIZE.sp, fontWeight = FontWeight.Bold, fontFamily = GameFonts.GameFont))
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Press P to Resume", style = TextStyle(color = GameColors.textPrimary.copy(alpha = 0.8f), fontSize = 18.sp, fontFamily = FontFamily.Monospace))
+            Text("Press P to Resume", style = TextStyle(color = GameColors.textPrimary.copy(alpha = 0.8f), fontSize = 18.sp, fontFamily = GameFonts.GameFont))
         }
     }
 }
