@@ -1,37 +1,10 @@
-package dev.pgm.game
+package dev.pgm.game.data.resources
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.loadImageBitmap
 import java.io.File
 
 object ImageLoader {
-    init {
-        // Diagnosticar recursos disponibles al inicio
-        println("\n🔍 DIAGNÓSTICO DE RECURSOS:")
-        listAvailableResources()
-    }
-
-    private fun listAvailableResources() {
-        try {
-            val classLoader = this::class.java.classLoader
-
-            // Intentar listar recursos del paquete
-            val url = classLoader.getResource("catjumpsbarrels.composeapp.generated.resources/drawable/")
-            println("  URL base: $url")
-
-            // Intentar cargar barrel_fish que sabemos que funciona
-            val barrelTest = classLoader.getResource("catjumpsbarrels.composeapp.generated.resources/drawable/barrel_fish.png")
-            println("  barrel_fish encontrado: $barrelTest")
-
-            // Buscar archivos cat
-            val catTest = classLoader.getResource("catjumpsbarrels.composeapp.generated.resources/drawable/cat/")
-            println("  directorio cat/: $catTest")
-
-        } catch (e: Exception) {
-            println("  Error en diagnóstico: ${e.message}")
-        }
-    }
-
     /**
      * Carga una imagen desde los recursos de compose de forma moderna
      */

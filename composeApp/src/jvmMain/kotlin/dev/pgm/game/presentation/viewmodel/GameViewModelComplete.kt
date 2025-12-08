@@ -42,11 +42,6 @@ class GameViewModelComplete(
             return
         }
 
-        // DEBUG
-        if (input.left || input.right || input.up || input.down || input.jump) {
-            println("DEBUG INPUT: left=${input.left}, right=${input.right}, up=${input.up}, down=${input.down}, jump=${input.jump}, deltaTime=$deltaTime")
-        }
-
         var newState = currentState
 
         // 1. Verificar y respawnear jugador si está muerto

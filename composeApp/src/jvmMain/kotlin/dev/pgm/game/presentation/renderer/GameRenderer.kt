@@ -1,4 +1,4 @@
-package dev.pgm.game
+package dev.pgm.game.presentation.renderer
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image

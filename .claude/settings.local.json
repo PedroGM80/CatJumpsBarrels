@@ -11,7 +11,11 @@
       "Bash(./gradlew clean build:*)",
       "Bash(./gradlew run:*)",
       "Bash(taskkill:*)",
-      "Bash(exit 0)"
+      "Bash(exit 0)",
+      "Bash(git rm:*)",
+      "Bash(find:*)",
+      "Bash(git mv:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

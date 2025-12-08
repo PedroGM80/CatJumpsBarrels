@@ -85,6 +85,26 @@ object GameConstants {
     /** Tolerancia inferior para detectar saltos sobre barriles */
     const val BARREL_JUMP_TOLERANCE_BOTTOM = 8f
 
+    // ========== Hitbox Offsets (para colisiones más precisas) ==========
+
+    /** Offset del hitbox del jugador desde el borde del sprite */
+    const val PLAYER_HITBOX_OFFSET = 4f
+
+    /** Reducción del tamaño del hitbox del jugador (aplicado a ambos lados) */
+    const val PLAYER_HITBOX_SIZE_REDUCTION = 8f
+
+    /** Offset del hitbox del barril desde el borde del sprite */
+    const val BARREL_HITBOX_OFFSET = 3f
+
+    /** Reducción del tamaño del hitbox del barril (aplicado a ambos lados) */
+    const val BARREL_HITBOX_SIZE_REDUCTION = 6f
+
+    /** Offset adicional para hitbox de colisión entre barril y jugador */
+    const val BARREL_COLLISION_HITBOX_OFFSET = 2f
+
+    /** Reducción adicional del hitbox de barril para colisiones */
+    const val BARREL_COLLISION_HITBOX_SIZE_REDUCTION = 4f
+
     // ========== Comportamiento de Barriles ==========
 
     /** Intervalo de tiempo entre spawns de barriles (en milisegundos) */
@@ -213,6 +233,9 @@ object GameConstants {
 
     /** Framerate objetivo del juego */
     const val TARGET_FPS = 60
+
+    /** Delay entre frames para mantener 60 FPS (en milisegundos) */
+    const val FRAME_DELAY_MS = 16L
 
     /** Tiempo objetivo por frame en nanosegundos */
     const val TARGET_FRAME_TIME_NS = 1_000_000_000L / TARGET_FPS

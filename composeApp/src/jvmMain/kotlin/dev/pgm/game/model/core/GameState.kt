@@ -124,7 +124,6 @@ data class GameState(
                 bottomPlatformIndex = 4
             )
             allLadders.add(leftLadder)
-            println("DEBUG LADDER CREATED: left ladder centerX=${leftLadder.centerX}, topIndex=${leftLadder.topPlatformIndex}")
 
             // Escalera derecha
             val rightEnemyLadderX = enemyPlatform.right - 30f
@@ -137,10 +136,7 @@ data class GameState(
                 bottomPlatformIndex = 4
             )
             allLadders.add(rightLadder)
-            println("DEBUG LADDER CREATED: right ladder centerX=${rightLadder.centerX}, topIndex=${rightLadder.topPlatformIndex}")
 
-            println("DEBUG: Enemy platform index=${enemyPlatform.index}, left=${enemyPlatform.left}, right=${enemyPlatform.right}")
-            
             // Escalera a la princesa
             val princessLadder = createPrincessLadder(platforms[5], princessPlatform)
             allLadders.add(princessLadder)

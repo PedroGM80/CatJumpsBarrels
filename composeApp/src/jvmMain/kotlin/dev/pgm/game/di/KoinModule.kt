@@ -1,5 +1,7 @@
 package dev.pgm.game.di
 
+import dev.pgm.game.domain.factory.ParticleFactory
+import dev.pgm.game.domain.services.*
 import dev.pgm.game.domain.usecase.*
 import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
 import org.koin.core.module.dsl.factoryOf
@@ -9,8 +11,18 @@ import org.koin.dsl.module
 /**
  * Módulo Koin para inyección de dependencias.
  * Koin es una librería multiplataforma que simplifica la DI sin reflexión.
+ *
+ * Refactored: Added abstractions for testability (TimeProvider, RandomProvider, ParticleFactory)
  */
 val gameModule = module {
+
+    // ========== Services (Abstractions for SOLID principles) ==========
+    // singleOf crea una única instancia (singleton)
+    single<TimeProvider> { SystemTimeProvider() }
+    single<RandomProvider> { DefaultRandomProvider() }
+
+    // ========== Factories ==========
+    factoryOf(::ParticleFactory)
 
     // ========== UseCases ==========
     // factoryOf crea una nueva instancia cada vez

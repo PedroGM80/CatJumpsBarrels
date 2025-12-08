@@ -45,7 +45,7 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "dev.pgm.game.GameKt"
+        mainClass = "dev.pgm.game.presentation.ui.GameKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

@@ -14,10 +14,6 @@ import kotlin.math.abs
 class UpdatePlayerUseCase {
 
     operator fun invoke(state: GameState, input: GameInput, deltaTime: Float): GameState {
-        if (input.left || input.right || input.up || input.down || input.jump) {
-            println("LOG 5: UpdatePlayerUseCase - input=$input, playerPos=${state.player.position}")
-        }
-
         if (state.player.state == PlayerState.DEAD) {
             return state
         }
