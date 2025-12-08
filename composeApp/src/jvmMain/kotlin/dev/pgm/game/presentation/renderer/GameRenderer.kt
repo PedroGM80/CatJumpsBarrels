@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import catjumpsbarrels.composeapp.generated.resources.Res
 import catjumpsbarrels.composeapp.generated.resources.background_industrial
 import catjumpsbarrels.composeapp.generated.resources.barrel_fish
+import catjumpsbarrels.composeapp.generated.resources.platform
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.CatAnimation
@@ -38,8 +39,8 @@ import org.jetbrains.compose.resources.painterResource
 object GameColors {
     val platformMain = Color(0xFFD84315)
     val platformDark = Color(0xFFBF360C)
-    val ladderMain = Color(0xFFFFC107)
-    val ladderDark = Color(0xFFFFA000)
+    val ladderMain = Color(0xFFFF6F00)
+    val ladderDark = Color(0xFFE65100)
     val dkBody = Color(0xFF6D4C41)
     val dkFace = Color(0xFF8D6E63)
     val barrelMain = Color(0xFF5D4037)
@@ -55,6 +56,7 @@ object GameColors {
 @Composable
 fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
     val barrelFishPainter = painterResource(Res.drawable.barrel_fish)
+    val platformPainter = painterResource(Res.drawable.platform)
 
     Box(modifier = modifier) {
         // Fondo de imagen
@@ -76,7 +78,7 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
             val offsetX = (screenWidth - levelWidth) / 2f
 
             withTransform({ translate(left = offsetX, top = 0f) }) {
-                state.platforms.forEach { drawPlatform(it) }
+                state.platforms.forEach { drawPlatform(it, platformPainter) }
                 state.ladders.forEach { drawLadder(it) }
                 drawDonkeyKong(state.enemy)
                 drawPrincess(state.winObjetive, barrelFishPainter)
@@ -229,18 +231,25 @@ private fun DrawScope.drawBarrel(barrel: Barrel) {
     }
 }
 
-private fun DrawScope.drawPlatform(platform: Platform) {
+private fun DrawScope.drawPlatform(platform: Platform, painter: Painter) {
     val startY = platform.getYAt(platform.left)
     val endY = platform.getYAt(platform.right)
-    val platformPath = Path().apply {
-        moveTo(platform.left, startY)
-        lineTo(platform.right, endY)
-        lineTo(platform.right, endY + platform.height)
-        lineTo(platform.left, startY + platform.height)
-        close()
+
+    // Calcular el ángulo de inclinación en grados
+    val angleRad = kotlin.math.atan(platform.slope)
+    val angleDeg = angleRad * 180f / kotlin.math.PI.toFloat()
+
+    // Dibujar la imagen de la viga estirada a lo largo de la plataforma
+    withTransform({
+        translate(left = platform.left, top = startY)
+        rotate(degrees = angleDeg, pivot = Offset(0f, 0f))
+    }) {
+        with(painter) {
+            draw(
+                size = Size(platform.width, platform.height)
+            )
+        }
     }
-    drawPath(platformPath, color = GameColors.platformMain)
-    drawPath(platformPath, color = GameColors.platformDark, style = Stroke(width = 1.5f))
 }
 
 private fun DrawScope.drawLadder(ladder: Ladder) {
@@ -262,7 +271,9 @@ private fun DrawScope.drawLadder(ladder: Ladder) {
 }
 
 private fun DrawScope.drawParticle(particle: Particle) {
-    drawCircle(color = Color(particle.color).copy(alpha = particle.alpha), radius = particle.size * particle.alpha, center = particle.position)
+    val baseColor = Color(particle.color)
+    val combinedAlpha = baseColor.alpha * particle.alpha
+    drawCircle(color = baseColor.copy(alpha = combinedAlpha), radius = particle.size * particle.alpha, center = particle.position)
 }
 
 private fun DrawScope.drawScorePopup(popup: ScorePopup) {
@@ -270,6 +281,6 @@ private fun DrawScope.drawScorePopup(popup: ScorePopup) {
     val yOffset = elapsed * GameConstants.SCORE_POPUP_Y_SPEED
     val alpha = 1f - (elapsed / GameConstants.SCORE_POPUP_LIFETIME_MS)
     if (alpha > 0) {
-        drawCircle(color = Color.Black.copy(alpha = alpha * 0.5f), radius = 20f, center = Offset(popup.position.x + 2f, popup.position.y - yOffset + 2f))
+        drawCircle(color = Color.Black.copy(alpha = alpha * 0.25f), radius = 8f, center = Offset(popup.position.x + 2f, popup.position.y - yOffset + 2f))
     }
 }

@@ -18,3 +18,4 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 /nul
+/composeApp/src/jvmMain/composeResources/drawable/GameMaker-Installer-2024.14.1.210.exe

@@ -18,7 +18,7 @@ import androidx.compose.ui.geometry.Offset
 data class Particle(
     val position: Offset,
     val velocity: Offset,
-    val color: Long,
+    val color: ULong,
     val size: Float,
     val lifetime: Float,
     val age: Float = 0f

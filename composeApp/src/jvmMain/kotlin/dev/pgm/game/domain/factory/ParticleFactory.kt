@@ -20,8 +20,9 @@ class ParticleFactory(
      * Types of particles that can be created
      */
     enum class ParticleType {
-        SCORE,    // Particles when jumping over barrels
-        DEATH     // Particles when player dies
+        SCORE,            // Particles when jumping over barrels (points popup)
+        DEATH,            // Particles when player dies
+        BARREL_DESTROYED  // Particles when barrel is destroyed by jumping
     }
 
     /**
@@ -58,22 +59,31 @@ class ParticleFactory(
     private fun getConfig(type: ParticleType): ParticleConfig {
         return when (type) {
             ParticleType.SCORE -> ParticleConfig(
-                count = GameConstants.SCORE_PARTICLE_COUNT,
-                positionSpread = 20f,
-                velocityXRange = GameConstants.SCORE_PARTICLE_VEL_X_RANGE,
-                velocityYRange = GameConstants.SCORE_PARTICLE_VEL_Y_RANGE,
-                baseSize = 2f,
-                sizeRange = GameConstants.SCORE_PARTICLE_SIZE_RANGE,
-                lifetime = GameConstants.SCORE_PARTICLE_LIFETIME
+                count = 8,  // Más partículas para mejor efecto
+                positionSpread = 15f,
+                velocityXRange = 120f,  // Mayor velocidad horizontal
+                velocityYRange = -100f,  // Mayor velocidad vertical
+                baseSize = 2.5f,
+                sizeRange = 4f,
+                lifetime = 0.6f
             )
             ParticleType.DEATH -> ParticleConfig(
-                count = GameConstants.DEATH_PARTICLE_COUNT,
-                positionSpread = 30f,
-                velocityXRange = GameConstants.DEATH_PARTICLE_VEL_X_RANGE,
-                velocityYRange = GameConstants.DEATH_PARTICLE_VEL_Y_RANGE,
+                count = 20,  // Muchas más partículas para explosión dramática
+                positionSpread = 25f,
+                velocityXRange = 200f,  // Explosión más amplia
+                velocityYRange = -150f,  // Partículas vuelan más alto
                 baseSize = 3f,
-                sizeRange = GameConstants.DEATH_PARTICLE_SIZE_RANGE,
-                lifetime = GameConstants.DEATH_PARTICLE_LIFETIME
+                sizeRange = 6f,
+                lifetime = 0.8f
+            )
+            ParticleType.BARREL_DESTROYED -> ParticleConfig(
+                count = 15,  // Buena cantidad de fragmentos de barril
+                positionSpread = 20f,
+                velocityXRange = 180f,  // Explosión amplia
+                velocityYRange = -130f,  // Fragmentos vuelan hacia arriba
+                baseSize = 2.5f,
+                sizeRange = 5f,
+                lifetime = 0.7f
             )
         }
     }
@@ -81,20 +91,39 @@ class ParticleFactory(
     /**
      * Gets color for a specific particle type
      */
-    private fun getParticleColor(type: ParticleType): Long {
+    private fun getParticleColor(type: ParticleType): ULong {
         return when (type) {
             ParticleType.SCORE -> {
-                // Random colorful particles for score
-                Color(
-                    randomProvider.nextFloat(),
-                    randomProvider.nextFloat(),
-                    randomProvider.nextFloat(),
-                    1f
-                ).value.toLong()
+                // Random colorful bright particles for score
+                val colors = listOf(
+                    Color(0xFFFFD700),  // Dorado
+                    Color(0xFFFFFF00),  // Amarillo
+                    Color(0xFFFFA500),  // Naranja
+                    Color(0xFFFF69B4)   // Rosa
+                )
+                colors[randomProvider.nextInt(0, colors.size)].value
             }
             ParticleType.DEATH -> {
-                // Red particles for death
-                Color.Red.value.toLong()
+                // Red/orange particles for player death - cartoon blood style
+                val colors = listOf(
+                    Color(0x50FF0000),  // Rojo puro brillante - ultra transparente
+                    Color(0x60FF1744),  // Rojo carmesí vibrante - muy transparente
+                    Color(0x55FF4444),  // Rojo coral brillante - muy transparente
+                    Color(0x58FF0033),  // Rojo cereza - muy transparente
+                    Color(0x48FF5252)   // Rojo-rosa brillante - máxima transparencia
+                )
+                colors[randomProvider.nextInt(0, colors.size)].value
+            }
+            ParticleType.BARREL_DESTROYED -> {
+                // Brown/barrel colors for barrel destruction
+                val barrelColors = listOf(
+                    Color(0x805D4037),  // Marrón principal del barril - transparente
+                    Color(0x753E2723),  // Marrón oscuro del barril - muy transparente
+                    Color(0x85795548),  // Marrón claro highlight - transparente
+                    Color(0x7A6D4C41),  // Marrón medio - muy transparente
+                    Color(0x888D6E63)   // Marrón claro - transparente
+                )
+                barrelColors[randomProvider.nextInt(0, barrelColors.size)].value
             }
         }
     }

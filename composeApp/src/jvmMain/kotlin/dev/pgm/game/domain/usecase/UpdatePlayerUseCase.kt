@@ -133,8 +133,9 @@ class UpdatePlayerUseCase {
 
         // Verificar si llegó a plataforma superior
         if (input.up && playerBottom <= topPlatformY + climbTolerance) {
+            val visualOffset = 2f  // Ajuste para que parezca estar sobre la superficie de la viga
             return player.copy(
-                position = Offset(newX, topPlatformY - player.size),
+                position = Offset(newX, topPlatformY - player.size + visualOffset),
                 isClimbing = false,
                 velocity = Offset.Zero,
                 isOnGround = true,
@@ -144,8 +145,9 @@ class UpdatePlayerUseCase {
 
         // Verificar si llegó a plataforma inferior
         if (input.down && playerBottom >= bottomPlatformY - climbTolerance) {
+            val visualOffset = 2f  // Ajuste para que parezca estar sobre la superficie de la viga
             return player.copy(
-                position = Offset(newX, bottomPlatformY - player.size),
+                position = Offset(newX, bottomPlatformY - player.size + visualOffset),
                 isClimbing = false,
                 velocity = Offset.Zero,
                 isOnGround = true,
@@ -193,8 +195,10 @@ class UpdatePlayerUseCase {
             if (playerBottom >= platformY - GameConstants.PLATFORM_COLLISION_TOLERANCE &&
                 playerBottom <= platformY + GameConstants.PLATFORM_COLLISION_TOLERANCE
             ) {
+                // Pequeño ajuste visual para que el jugador parezca estar sobre la superficie de la viga
+                val visualOffset = 2f
                 return PlatformCollision(
-                    position = Offset(position.x, platformY - size),
+                    position = Offset(position.x, platformY - size + visualOffset),
                     platform = platform
                 )
             }

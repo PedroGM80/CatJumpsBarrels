@@ -7,17 +7,32 @@
       "Bash(./gradlew.bat --stop)",
       "Bash(./gradlew.bat clean build)",
       "Bash(ls:*)",
-      "Bash(git add:*)",
       "Bash(./gradlew clean build:*)",
       "Bash(./gradlew run:*)",
       "Bash(taskkill:*)",
       "Bash(exit 0)",
-      "Bash(git rm:*)",
       "Bash(find:*)",
-      "Bash(git mv:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(tail:*)",
+      "Bash(head:*)",
+      "Bash(tail -n *:*)",
+      "Bash(head -n *:*)",
+      "Bash(cat build/*:*)",
+      "Bash(cat src/*:*)",
+      "Bash(ls build/*:*)",
+      "Bash(ls src/*:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [
+      "Bash(git rm:*)",
+      "Bash(git mv:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git merge:*)"
+    ]
   }
 }

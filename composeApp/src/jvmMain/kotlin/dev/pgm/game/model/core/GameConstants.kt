@@ -13,8 +13,8 @@ object GameConstants {
     /** Ancho del área de juego en píxeles */
     const val LEVEL_WIDTH = 600f
 
-    /** Altura de cada plataforma */
-    const val PLATFORM_HEIGHT = 8f
+    /** Altura de cada plataforma (ajustado para la imagen de viga industrial) */
+    const val PLATFORM_HEIGHT = 32f
 
     /** Separación vertical entre plataformas */
     const val PLATFORM_GAP = 100f
@@ -65,7 +65,7 @@ object GameConstants {
 
     /** Fuerza inicial del salto (negativa porque Y crece hacia abajo)
      * El salto es bajo, solo para saltar barriles */
-    const val JUMP_STRENGTH = -7.5f
+    const val JUMP_STRENGTH = -6.0f
 
     /** Velocidad de movimiento horizontal del jugador */
     const val MOVE_SPEED = 3.0f
@@ -172,7 +172,7 @@ object GameConstants {
     const val SCORE_POPUP_LIFETIME_MS = 1000f
 
     /** Velocidad de subida del popup de puntuación */
-    const val SCORE_POPUP_Y_SPEED = 0.05f
+    const val SCORE_POPUP_Y_SPEED = 0.03f
 
     // ========== Tamaños de Sprites ==========
 

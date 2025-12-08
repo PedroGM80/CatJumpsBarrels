@@ -210,7 +210,8 @@ data class GameState(
 
         private fun createPlayer(startPlatform: Platform): Player {
             val x = GameConstants.PLAYER_START_X
-            val y = startPlatform.getYAt(x) - GameConstants.PLAYER_SIZE
+            val visualOffset = 2f  // Ajuste para que parezca estar sobre la superficie de la viga
+            val y = startPlatform.getYAt(x) - GameConstants.PLAYER_SIZE + visualOffset
 
             return Player(
                 position = Offset(x, y),
@@ -221,7 +222,8 @@ data class GameState(
 
         private fun createBoss(platform: Platform): Boss {
             val x = GameConstants.ENEMY_START_X + 40f  // Un poco mas a la derecha
-            val y = platform.getYAt(x) - GameConstants.ENEMY_SIZE
+            val visualOffset = 2f  // Ajuste para que parezca estar sobre la superficie de la viga
+            val y = platform.getYAt(x) - GameConstants.ENEMY_SIZE + visualOffset
 
             return Boss(
                 position = Offset(x, y),
@@ -231,7 +233,8 @@ data class GameState(
 
         private fun createWinObjetive(princessPlatform: Platform): WinObjetive {
             val x = princessPlatform.position.x + GameConstants.PRINCESS_OFFSET_X
-            val y = princessPlatform.top - GameConstants.PRINCESS_SIZE
+            val visualOffset = 2f  // Ajuste para que parezca estar sobre la superficie de la viga
+            val y = princessPlatform.top - GameConstants.PRINCESS_SIZE + visualOffset
 
             return WinObjetive(
                 position = Offset(x, y),

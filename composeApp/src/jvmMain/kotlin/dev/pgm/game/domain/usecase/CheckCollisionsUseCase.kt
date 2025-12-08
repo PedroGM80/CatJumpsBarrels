@@ -70,15 +70,16 @@ class CheckCollisionsUseCase(
     }
 
     private fun handleBarrelJumped(state: GameState, barrel: Barrel): GameState {
+        // Eliminar el barril de la lista cuando se salta sobre él
+        val remainingBarrels = state.barrels.filter { it !== barrel }
+
         return state.copy(
             score = state.score + GameConstants.POINTS_JUMP_BARREL,
-            barrels = state.barrels.map {
-                if (it === barrel) it.copy(hasBeenJumped = true) else it
-            },
+            barrels = remainingBarrels,
             particles = state.particles + particleFactory.createParticles(
-                barrel.position.x,
-                barrel.position.y,
-                ParticleFactory.ParticleType.SCORE
+                barrel.position.x + barrel.size / 2,  // Centro del barril
+                barrel.position.y + barrel.size / 2,
+                ParticleFactory.ParticleType.BARREL_DESTROYED  // Fragmentos de barril con colores marrones
             ),
             lastScorePopup = ScorePopup(barrel.position, GameConstants.POINTS_JUMP_BARREL)
         )
@@ -95,8 +96,8 @@ class CheckCollisionsUseCase(
             playerDeathTimestamp = timeProvider.currentTimeMillis(),
             barrels = emptyList(), // Limpiar todos los barriles
             particles = state.particles + particleFactory.createParticles(
-                state.player.position.x,
-                state.player.position.y,
+                state.player.position.x + state.player.size / 2,  // Centro del jugador
+                state.player.position.y + state.player.size / 2,
                 ParticleFactory.ParticleType.DEATH
             )
         )
