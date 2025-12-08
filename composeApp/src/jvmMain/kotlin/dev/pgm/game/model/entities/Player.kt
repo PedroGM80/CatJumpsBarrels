@@ -27,8 +27,6 @@ enum class PlayerState {
     FALLING,
     /** Subiendo o bajando por una escalera */
     CLIMBING,
-    /** Deslizándose (no implementado aún) */
-    SLIDING,
     /** Recibiendo daño */
     HURT,
     /** Muerto */
@@ -59,8 +57,7 @@ data class Player(
     val direction: Direction = Direction.RIGHT,
     val state: PlayerState = PlayerState.IDLE,
     val invincibleUntil: Long = 0L,
-    val animationFrame: Int = 0,
-    val animationFrameCount: Int = 10
+    val animationFrame: Int = 0
 ) {
     /**
      * Determina si el jugador es actualmente invencible.

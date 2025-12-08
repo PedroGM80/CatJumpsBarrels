@@ -32,6 +32,7 @@ fun main() {
     application {
         var input by remember { mutableStateOf(GameInput()) }
         var shouldRestart by remember { mutableStateOf(false) }
+        var shouldTogglePause by remember { mutableStateOf(false) }
         val inputHandler = remember { InputHandler() }
 
         Window(
@@ -48,7 +49,7 @@ fun main() {
                         shouldRestart = true
                     },
                     onPause = {
-                        // Pause functionality can be added here
+                        shouldTogglePause = !shouldTogglePause
                     }
                 )
                 input = newInput
@@ -64,6 +65,14 @@ fun main() {
                     shouldRestart = false
                 }
             }
+
+            // Manejar pausa cuando se presiona P o Escape
+            LaunchedEffect(shouldTogglePause) {
+                if (shouldTogglePause) {
+                    viewModel.togglePause()
+                }
+            }
+
             val gameState by viewModel.gameState.collectAsState()
 
             // Game loop

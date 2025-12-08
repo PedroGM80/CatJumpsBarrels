@@ -21,8 +21,7 @@ class ParticleFactory(
      */
     enum class ParticleType {
         SCORE,    // Particles when jumping over barrels
-        DEATH,    // Particles when player dies
-        SPAWN     // Particles when barrels spawn (future use)
+        DEATH     // Particles when player dies
     }
 
     /**
@@ -76,15 +75,6 @@ class ParticleFactory(
                 sizeRange = GameConstants.DEATH_PARTICLE_SIZE_RANGE,
                 lifetime = GameConstants.DEATH_PARTICLE_LIFETIME
             )
-            ParticleType.SPAWN -> ParticleConfig(
-                count = 15,
-                positionSpread = 25f,
-                velocityXRange = 100f,
-                velocityYRange = 200f,
-                baseSize = 2f,
-                sizeRange = 3f,
-                lifetime = 800f
-            )
         }
     }
 
@@ -105,10 +95,6 @@ class ParticleFactory(
             ParticleType.DEATH -> {
                 // Red particles for death
                 Color.Red.value.toLong()
-            }
-            ParticleType.SPAWN -> {
-                // Yellow particles for spawn
-                Color.Yellow.value.toLong()
             }
         }
     }

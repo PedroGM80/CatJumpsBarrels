@@ -11,9 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -36,11 +34,8 @@ import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
 import org.jetbrains.compose.resources.painterResource
-import kotlin.math.sin
 
 object GameColors {
-    val backgroundGradientTop = Color(0xFF1B2838)
-    val backgroundGradientBottom = Color(0xFF0D1B2A)
     val platformMain = Color(0xFFD84315)
     val platformDark = Color(0xFFBF360C)
     val ladderMain = Color(0xFFFFC107)
@@ -202,9 +197,9 @@ private fun DrawScope.drawDonkeyKong(dk: Boss) {
     drawLine(color = Color.Black, start = Offset(pos.x + size / 2 - 18f, pos.y + size * 0.1f), end = Offset(pos.x + size / 2 - 5f, pos.y + size * 0.08f), strokeWidth = 3f)
     drawLine(color = Color.Black, start = Offset(pos.x + size / 2 + 5f, pos.y + size * 0.08f), end = Offset(pos.x + size / 2 + 18f, pos.y + size * 0.1f), strokeWidth = 3f)
     drawArc(color = Color.Black, startAngle = 0f, sweepAngle = 180f, useCenter = false, topLeft = Offset(pos.x + size * 0.35f, pos.y + size * 0.28f), size = Size(size * 0.3f, size * 0.1f), style = Stroke(width = 2f))
-    val armOffset = if (dk.isThrowingBarrel) GameConstants.ENEMY_ARM_THROW_OFFSET else 0f
-    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x - 10f, pos.y + size * 0.4f + armOffset), size = Size(20f, 35f))
-    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + size - 10f, pos.y + size * 0.4f + armOffset), size = Size(20f, 35f))
+    // Arms
+    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x - 10f, pos.y + size * 0.4f), size = Size(20f, 35f))
+    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + size - 10f, pos.y + size * 0.4f), size = Size(20f, 35f))
 }
 
 private fun DrawScope.drawPrincess(winObjetive: WinObjetive, painter: Painter) {

@@ -24,11 +24,6 @@ data class Particle(
     val age: Float = 0f
 ) {
     /**
-     * Indica si la partícula aún está viva y debe renderizarse.
-     */
-    val isAlive: Boolean get() = age < lifetime
-
-    /**
      * Calcula la opacidad de la partícula basada en su edad.
      * Las partículas se desvanecen gradualmente hasta desaparecer.
      *

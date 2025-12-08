@@ -2,7 +2,6 @@ package dev.pgm.game.data.resources
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.loadImageBitmap
-import java.io.File
 
 object ImageLoader {
     /**
@@ -33,13 +32,6 @@ object ImageLoader {
             "No se pudo cargar la imagen: $resourcePath\n" +
             "Paths intentados: ${possiblePaths.joinToString()}"
         )
-    }
-
-    /**
-     * Carga una imagen desde el sistema de archivos (para desarrollo)
-     */
-    fun loadFromFile(filePath: String): ImageBitmap {
-        return File(filePath).inputStream().use { loadImageBitmap(it) }
     }
 }
 

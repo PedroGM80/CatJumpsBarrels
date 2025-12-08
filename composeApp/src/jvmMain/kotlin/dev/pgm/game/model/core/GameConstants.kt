@@ -309,22 +309,6 @@ object GameConstants {
     /** Gravedad aplicada a las partículas */
     const val PARTICLE_GRAVITY = 150f
 
-    // Partículas de Spawn
-    /** Cantidad de partículas al spawear un barril */
-    const val SPAWN_PARTICLE_COUNT = 4
-
-    /** Rango de velocidad X de partículas de spawn */
-    const val SPAWN_PARTICLE_VEL_X_RANGE = 40f
-
-    /** Rango de velocidad Y de partículas de spawn */
-    const val SPAWN_PARTICLE_VEL_Y_RANGE = -30f
-
-    /** Rango de tamaño de partículas de spawn */
-    const val SPAWN_PARTICLE_SIZE_RANGE = 4f
-
-    /** Tiempo de vida de partículas de spawn */
-    const val SPAWN_PARTICLE_LIFETIME = 0.3f
-
     // Partículas de Puntuación
     /** Cantidad de partículas al obtener puntos */
     const val SCORE_PARTICLE_COUNT = 6
@@ -356,20 +340,4 @@ object GameConstants {
 
     /** Tiempo de vida de partículas de muerte */
     const val DEATH_PARTICLE_LIFETIME = 0.7f
-
-    // Partículas de Victoria
-    /** Cantidad de partículas al ganar */
-    const val WIN_PARTICLE_COUNT = 25
-
-    /** Rango de velocidad X de partículas de victoria */
-    const val WIN_PARTICLE_VEL_X_RANGE = 250f
-
-    /** Rango de velocidad Y de partículas de victoria */
-    const val WIN_PARTICLE_VEL_Y_RANGE = -180f
-
-    /** Rango de tamaño de partículas de victoria */
-    const val WIN_PARTICLE_SIZE_RANGE = 9f
-
-    /** Tiempo de vida de partículas de victoria */
-    const val WIN_PARTICLE_LIFETIME = 1.2f
 }
