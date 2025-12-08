@@ -3,7 +3,6 @@ package dev.pgm.game.domain.factory
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import dev.pgm.game.domain.services.RandomProvider
-import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.utils.Particle
 
 /**

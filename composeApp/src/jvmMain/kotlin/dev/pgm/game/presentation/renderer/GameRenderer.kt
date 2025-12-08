@@ -5,42 +5,35 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import catjumpsbarrels.composeapp.generated.resources.Res
-import catjumpsbarrels.composeapp.generated.resources.background_industrial
-import catjumpsbarrels.composeapp.generated.resources.barrel_fish
-import catjumpsbarrels.composeapp.generated.resources.platform
+import catjumpsbarrels.composeapp.generated.resources.*
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
-import dev.pgm.game.model.entities.CatAnimation
 import dev.pgm.game.model.entities.*
+import dev.pgm.game.model.entities.Direction
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
-    val platformMain = Color(0xFFD84315)
-    val platformDark = Color(0xFFBF360C)
-    val ladderMain = Color(0xFFFF6F00)
-    val ladderDark = Color(0xFFE65100)
+    val ladderMain = Color(0xFF5D5047)  // Gris marrón oscuro - acero oxidado
+    val ladderDark = Color(0xFF3E342E)  // Gris muy oscuro con toque de óxido
     val dkBody = Color(0xFF6D4C41)
     val dkFace = Color(0xFF8D6E63)
     val barrelMain = Color(0xFF5D4037)
@@ -57,6 +50,7 @@ object GameColors {
 fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
     val barrelFishPainter = painterResource(Res.drawable.barrel_fish)
     val platformPainter = painterResource(Res.drawable.platform)
+    val ironTexturePainter = painterResource(Res.drawable.iron_texture)
 
     Box(modifier = modifier) {
         // Fondo de imagen
@@ -79,7 +73,7 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
 
             withTransform({ translate(left = offsetX, top = 0f) }) {
                 state.platforms.forEach { drawPlatform(it, platformPainter) }
-                state.ladders.forEach { drawLadder(it) }
+                state.ladders.forEach { drawLadder(it, ironTexturePainter) }
                 drawDonkeyKong(state.enemy)
                 drawPrincess(state.winObjetive, barrelFishPainter)
                 state.barrels.forEach { drawBarrel(it) }
@@ -252,20 +246,40 @@ private fun DrawScope.drawPlatform(platform: Platform, painter: Painter) {
     }
 }
 
-private fun DrawScope.drawLadder(ladder: Ladder) {
+private fun DrawScope.drawLadder(ladder: Ladder, texturePainter: Painter) {
     val pos = ladder.position
     val w = ladder.width
     val h = ladder.height
     val leftX = pos.x + 4f
     val rightX = pos.x + w - 4f
-    drawLine(color = GameColors.ladderMain, start = Offset(leftX, pos.y), end = Offset(leftX, pos.y + h), strokeWidth = 5f)
-    drawLine(color = GameColors.ladderDark, start = Offset(leftX + 2f, pos.y), end = Offset(leftX + 2f, pos.y + h), strokeWidth = 1f)
-    drawLine(color = GameColors.ladderMain, start = Offset(rightX, pos.y), end = Offset(rightX, pos.y + h), strokeWidth = 5f)
-    drawLine(color = GameColors.ladderDark, start = Offset(rightX - 2f, pos.y), end = Offset(rightX - 2f, pos.y + h), strokeWidth = 1f)
+
+    // Dibujar los postes verticales izquierdo y derecho con textura
+    withTransform({
+        translate(left = leftX, top = pos.y)
+    }) {
+        with(texturePainter) {
+            draw(Size(5f, h))
+        }
+    }
+
+    withTransform({
+        translate(left = rightX, top = pos.y)
+    }) {
+        with(texturePainter) {
+            draw(Size(5f, h))
+        }
+    }
+
+    // Dibujar los escalones horizontales con textura
     var y = pos.y + 15f
     while (y < pos.y + h - 5f) {
-        drawRoundRect(color = GameColors.ladderMain, topLeft = Offset(leftX, y - 2f), size = Size(rightX - leftX, 5f), cornerRadius = CornerRadius(1f))
-        drawLine(color = GameColors.ladderDark, start = Offset(leftX, y + 3f), end = Offset(rightX, y + 3f), strokeWidth = 1f)
+        withTransform({
+            translate(left = leftX, top = y - 2f)
+        }) {
+            with(texturePainter) {
+                draw(Size(rightX - leftX, 5f))
+            }
+        }
         y += 18f
     }
 }
