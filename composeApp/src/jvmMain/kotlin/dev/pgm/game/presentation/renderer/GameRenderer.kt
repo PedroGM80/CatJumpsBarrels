@@ -109,14 +109,29 @@ private fun BoxScope.HUD(state: GameState) {
             }
         }
     }
-    // Controles en la parte inferior
+    // Controles en la parte superior con estilo mejorado
     Column(
-        modifier = Modifier.align(Alignment.BottomCenter).padding(GameConstants.HUD_PADDING.dp),
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "WASD/Arrows: Move | SPACE: Jump | P: Pause",
-            style = hudStyle.copy(color = GameColors.textPrimary.copy(alpha = 0.5f), fontSize = 10.sp)
+            "CONTROLS",
+            style = TextStyle(
+                color = Color(0xFFFFD700),  // Dorado
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            "WASD/Arrows: Move  •  SPACE: Jump  •  P: Pause",
+            style = TextStyle(
+                color = Color(0xFFFFFFFF),  // Blanco puro
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Monospace
+            )
         )
     }
 }
