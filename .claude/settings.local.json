@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(./gradlew composeApp:run:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

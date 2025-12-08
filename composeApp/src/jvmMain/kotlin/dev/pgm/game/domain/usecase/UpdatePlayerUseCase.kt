@@ -35,11 +35,11 @@ class UpdatePlayerUseCase(
             handleNormalMovement(player, input, state.platforms)
         }
 
-        // Detectar caída al vacío
-        val fellOffLeft = player.position.x + player.size < 0  // Completamente fuera por la izquierda
-        val fellOffBottom = player.position.y > state.screenSize.height + 100f  // Cayó por debajo de la pantalla
+        // Detectar caída al vacío - solo por ABAJO (por debajo de la plataforma más baja)
+        val fellOffBottom = player.position.y > state.screenSize.height + 100f
 
-        if (fellOffLeft || fellOffBottom) {
+        if (fellOffBottom) {
+            println("[GAME EVENT] Jugador cayó al vacío por abajo (X=${player.position.x}, Y=${player.position.y})")
             // El jugador cayó al vacío - ejecutar lógica de muerte
             return handleFallDeath(state.copy(player = player))
         }
@@ -50,6 +50,8 @@ class UpdatePlayerUseCase(
     private fun handleFallDeath(state: GameState): GameState {
         val newLives = state.lives - 1
         val isGameOver = newLives <= 0
+
+        println("[GAME EVENT] Muerte procesada: vidas restantes=$newLives, game over=$isGameOver")
 
         return state.copy(
             player = state.player.copy(state = PlayerState.DEAD),
@@ -99,10 +101,7 @@ class UpdatePlayerUseCase(
         val newVelocity = Offset(horizontalVelocity, verticalVelocity)
         var newPosition = player.position + newVelocity
 
-        // Límite horizontal solo por la derecha (permitir caída por la izquierda)
-        if (newPosition.x > GameConstants.LEVEL_WIDTH - player.size) {
-            newPosition = newPosition.copy(x = GameConstants.LEVEL_WIDTH - player.size)
-        }
+        // Sin límites horizontales - permitir caída al vacío en ambas direcciones
 
         // Colisión con plataformas
         val collision = checkPlatformCollision(
