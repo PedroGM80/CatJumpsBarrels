@@ -1,6 +1,8 @@
 package dev.pgm.game.domain.usecase
 
 import androidx.compose.ui.geometry.Offset
+import dev.pgm.game.domain.factory.ParticleFactory
+import dev.pgm.game.domain.services.TimeProvider
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
@@ -11,7 +13,10 @@ import kotlin.math.abs
  * Use Case: Actualizar el estado del jugador basado en el input.
  * Responsabilidad única: Manejar toda la lógica relacionada con el movimiento y estado del jugador.
  */
-class UpdatePlayerUseCase {
+class UpdatePlayerUseCase(
+    private val timeProvider: TimeProvider,
+    private val particleFactory: ParticleFactory
+) {
 
     operator fun invoke(state: GameState, input: GameInput, deltaTime: Float): GameState {
         if (state.player.state == PlayerState.DEAD) {
@@ -30,7 +35,34 @@ class UpdatePlayerUseCase {
             handleNormalMovement(player, input, state.platforms)
         }
 
+        // Detectar caída al vacío
+        val fellOffLeft = player.position.x + player.size < 0  // Completamente fuera por la izquierda
+        val fellOffBottom = player.position.y > state.screenSize.height + 100f  // Cayó por debajo de la pantalla
+
+        if (fellOffLeft || fellOffBottom) {
+            // El jugador cayó al vacío - ejecutar lógica de muerte
+            return handleFallDeath(state.copy(player = player))
+        }
+
         return state.copy(player = player)
+    }
+
+    private fun handleFallDeath(state: GameState): GameState {
+        val newLives = state.lives - 1
+        val isGameOver = newLives <= 0
+
+        return state.copy(
+            player = state.player.copy(state = PlayerState.DEAD),
+            lives = newLives,
+            isGameOver = isGameOver,
+            playerDeathTimestamp = timeProvider.currentTimeMillis(),
+            barrels = emptyList(), // Limpiar todos los barriles
+            particles = state.particles + particleFactory.createParticles(
+                state.player.position.x + state.player.size / 2,  // Centro del jugador
+                state.player.position.y + state.player.size / 2,
+                ParticleFactory.ParticleType.DEATH
+            )
+        )
     }
 
     private fun handleNormalMovement(
@@ -67,10 +99,10 @@ class UpdatePlayerUseCase {
         val newVelocity = Offset(horizontalVelocity, verticalVelocity)
         var newPosition = player.position + newVelocity
 
-        // Limites horizontales
-        newPosition = newPosition.copy(
-            x = newPosition.x.coerceIn(0f, GameConstants.LEVEL_WIDTH - player.size)
-        )
+        // Límite horizontal solo por la derecha (permitir caída por la izquierda)
+        if (newPosition.x > GameConstants.LEVEL_WIDTH - player.size) {
+            newPosition = newPosition.copy(x = GameConstants.LEVEL_WIDTH - player.size)
+        }
 
         // Colisión con plataformas
         val collision = checkPlatformCollision(
