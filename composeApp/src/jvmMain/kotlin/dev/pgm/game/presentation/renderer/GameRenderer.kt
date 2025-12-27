@@ -33,8 +33,6 @@ import dev.pgm.game.presentation.theme.GameFonts
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
-    val ladderMain = Color(0xFF5D5047)  // Gris marrón oscuro - acero oxidado
-    val ladderDark = Color(0xFF3E342E)  // Gris muy oscuro con toque de óxido
     val dkBody = Color(0xFF6D4C41)
     val dkFace = Color(0xFF8D6E63)
     val barrelMain = Color(0xFF5D4037)
