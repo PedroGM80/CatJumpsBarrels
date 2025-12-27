@@ -19,3 +19,11 @@ captures
 node_modules/
 /nul
 /composeApp/src/jvmMain/composeResources/drawable/GameMaker-Installer-2024.14.1.210.exe
+
+# Claude Code settings
+.claude/settings.local.json
+
+# Git rewrite scripts
+commit_messages.txt
+rewrite_history.py
+rewrite_commits.sh
