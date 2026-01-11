@@ -6,7 +6,9 @@ import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.CatAnimation
+import dev.pgm.game.model.entities.BossAnimation
 import dev.pgm.game.model.entities.PlayerState
+import dev.pgm.game.model.entities.BossState
 import dev.pgm.game.core.utils.GameRect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,11 +49,12 @@ class GameViewModelComplete(
         // 1. Verificar y respawnear jugador si está muerto
         newState = checkAndRespawnPlayer(newState)
 
-        // 2. Actualizar animación del jugador
+        // 2. Actualizar animación del jugador y del boss
         animationTimer += deltaTime
         if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
             animationTimer = 0f
             newState = updatePlayerAnimation(newState, input)
+            newState = updateBossAnimation(newState)
         }
 
         // 3. Actualizar jugador si no está muerto
@@ -122,6 +125,31 @@ class GameViewModelComplete(
 
         return state.copy(
             player = player.copy(animationFrame = nextFrame)
+        )
+    }
+
+    private fun updateBossAnimation(state: GameState): GameState {
+        val boss = state.enemy
+        val animation = BossAnimation.animations[boss.state] ?: BossAnimation.animations[BossState.IDLE]!!
+
+        if (animation.isEmpty()) {
+            return state
+        }
+
+        val nextFrame = (boss.animationFrame + 1) % animation.size
+
+        // Si está en estado THROWING y completó la animación, volver a IDLE
+        val newState = if (boss.state == BossState.THROWING && nextFrame == 0) {
+            BossState.IDLE
+        } else {
+            boss.state
+        }
+
+        return state.copy(
+            enemy = boss.copy(
+                animationFrame = nextFrame,
+                state = newState
+            )
         )
     }
 

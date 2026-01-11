@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.Barrel
+import dev.pgm.game.model.entities.BossState
 
 /**
  * Use Case: Generar barriles desde la posición del enemigo.
@@ -12,30 +13,52 @@ import dev.pgm.game.model.entities.Barrel
 class SpawnBarrelUseCase {
 
     private var lastSpawnTime = 0L
+    private var barrelSpawnedInCurrentThrow = false
 
     operator fun invoke(state: GameState, currentTime: Long): GameState {
-        // Verificar si es tiempo de spawear un nuevo barril
-        if (currentTime - lastSpawnTime < GameConstants.BARREL_SPAWN_INTERVAL) {
-            return state
+        val boss = state.enemy
+
+        // Si el Boss está en IDLE, verificar si es tiempo de iniciar un nuevo lanzamiento
+        if (boss.state == BossState.IDLE) {
+            if (currentTime - lastSpawnTime < GameConstants.BARREL_SPAWN_INTERVAL) {
+                return state
+            }
+
+            // Iniciar animación de lanzamiento
+            lastSpawnTime = currentTime
+            barrelSpawnedInCurrentThrow = false
+            return state.copy(
+                enemy = boss.copy(state = BossState.THROWING, animationFrame = 0)
+            )
         }
 
-        lastSpawnTime = currentTime
+        // Si el Boss está en THROWING, crear el barril en el momento correcto
+        if (boss.state == BossState.THROWING && !barrelSpawnedInCurrentThrow) {
+            // El barril se crea cuando la animación llega al frame 6 (momento del lanzamiento)
+            // Frames 0-2: Tomar barril (dogTakeBarrel) - 3 frames
+            // Frames 3-5: Preparar lanzamiento (dogLaunchBarrel0) - 3 frames
+            // Frame 6: Se crea el barril (inicio de dogLaunchBarrel2)
+            // Frames 6-8: Después de lanzar (dogLaunchBarrel2) - 3 frames, sin barril
+            if (boss.animationFrame >= 6) {
+                barrelSpawnedInCurrentThrow = true
 
-        // Crear nuevo barril en la posición del enemigo
-        val newBarrel = Barrel(
-            position = Offset(
-                state.enemy.position.x + state.enemy.size / 2,
-                state.enemy.position.y + state.enemy.size
-            ),
-            currentPlatformIndex = 5 // Plataforma del enemigo
-        )
+                val newBarrel = Barrel(
+                    position = Offset(
+                        boss.position.x + boss.size / 2,
+                        boss.position.y + boss.size
+                    ),
+                    currentPlatformIndex = 5
+                )
 
-        return state.copy(
-            barrels = state.barrels + newBarrel
-        )
+                return state.copy(barrels = state.barrels + newBarrel)
+            }
+        }
+
+        return state
     }
 
     fun reset() {
         lastSpawnTime = 0L
+        barrelSpawnedInCurrentThrow = false
     }
 }

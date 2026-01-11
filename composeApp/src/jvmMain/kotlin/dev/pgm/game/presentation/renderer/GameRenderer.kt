@@ -11,13 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -33,8 +33,6 @@ import dev.pgm.game.presentation.theme.GameFonts
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
-    val dkBody = Color(0xFF6D4C41)
-    val dkFace = Color(0xFF8D6E63)
     val barrelMain = Color(0xFF5D4037)
     val barrelDark = Color(0xFF3E2723)
     val barrelHighlight = Color(0xFF795548)
@@ -194,22 +192,62 @@ private fun DrawScope.drawPlayer(player: Player) {
 }
 
 private fun DrawScope.drawDonkeyKong(dk: Boss) {
-    val pos = dk.position
-    val size = dk.size
-    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + 5f, pos.y + size * GameConstants.ENEMY_BODY_V_POS_SCALE), size = Size(size - 10f, size * GameConstants.ENEMY_BODY_H_SCALE))
-    drawOval(color = GameColors.dkFace, topLeft = Offset(pos.x + size * GameConstants.ENEMY_CHEST_V_POS_SCALE, pos.y + size * GameConstants.ENEMY_CHEST_H_SCALE), size = Size(size * GameConstants.ENEMY_CHEST_H_SCALE, size * GameConstants.ENEMY_CHEST_H_SCALE))
-    drawCircle(color = GameColors.dkBody, radius = size * GameConstants.ENEMY_HEAD_RADIUS_SCALE, center = Offset(pos.x + size / 2, pos.y + size * GameConstants.ENEMY_HEAD_V_POS_SCALE))
-    drawOval(color = GameColors.dkFace, topLeft = Offset(pos.x + size * 0.3f, pos.y + size * GameConstants.ENEMY_FACE_V_POS_SCALE), size = Size(size * GameConstants.ENEMY_FACE_H_SCALE, size * 0.25f))
-    drawCircle(color = Color.White, radius = 7f, center = Offset(pos.x + size / 2 - 10f, pos.y + size * 0.18f))
-    drawCircle(color = Color.White, radius = 7f, center = Offset(pos.x + size / 2 + 10f, pos.y + size * 0.18f))
-    drawCircle(color = Color.Black, radius = 4f, center = Offset(pos.x + size / 2 - 8f, pos.y + size * 0.18f))
-    drawCircle(color = Color.Black, radius = 4f, center = Offset(pos.x + size / 2 + 12f, pos.y + size * 0.18f))
-    drawLine(color = Color.Black, start = Offset(pos.x + size / 2 - 18f, pos.y + size * 0.1f), end = Offset(pos.x + size / 2 - 5f, pos.y + size * 0.08f), strokeWidth = 3f)
-    drawLine(color = Color.Black, start = Offset(pos.x + size / 2 + 5f, pos.y + size * 0.08f), end = Offset(pos.x + size / 2 + 18f, pos.y + size * 0.1f), strokeWidth = 3f)
-    drawArc(color = Color.Black, startAngle = 0f, sweepAngle = 180f, useCenter = false, topLeft = Offset(pos.x + size * 0.35f, pos.y + size * 0.28f), size = Size(size * 0.3f, size * 0.1f), style = Stroke(width = 2f))
-    // Arms
-    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x - 10f, pos.y + size * 0.4f), size = Size(20f, 35f))
-    drawOval(color = GameColors.dkBody, topLeft = Offset(pos.x + size - 10f, pos.y + size * 0.4f), size = Size(20f, 35f))
+    val animation = BossAnimation.animations[dk.state] ?: BossAnimation.animations[BossState.IDLE]!!
+    if (animation.isEmpty()) return
+
+    val frameIndex = dk.animationFrame % animation.size
+    val image = animation[frameIndex]
+
+    // Dibujar pila de barriles detrás del perro
+    drawBarrelStackBehindBoss(dk)
+
+    withTransform({
+        translate(left = dk.position.x, top = dk.position.y)
+    }) {
+        drawImage(
+            image = image,
+            dstSize = IntSize(dk.size.toInt(), dk.size.toInt())
+        )
+    }
+}
+
+// Imagen de barril precargada (se carga una sola vez)
+private val barrelStackImage: ImageBitmap? by lazy {
+    try {
+        dev.pgm.game.data.resources.ImageLoader.loadResourceImage("drawable/barrel_empty.png")
+    } catch (e: Exception) {
+        null
+    }
+}
+
+private fun DrawScope.drawBarrelStackBehindBoss(dk: Boss) {
+    val barrelImage = barrelStackImage ?: return
+
+    val barrelSize = 25f
+    val barrelSpacing = 28f
+    val verticalSpacing = 18f
+
+    val stackY = dk.position.y + dk.size - barrelSize
+    val startX = dk.position.x + barrelSize * 4
+
+    for (row in 0..4) {
+        val barrelsInRow = 5 - row
+        val rowY = stackY - (row * verticalSpacing)
+        val rowStartX = startX - (row * (barrelSpacing / 2f))
+
+        for (i in 0 until barrelsInRow) {
+            val barrelX = rowStartX - (i * barrelSpacing)
+
+            withTransform({
+                translate(left = barrelX, top = rowY)
+            }) {
+                drawImage(
+                    image = barrelImage,
+                    dstSize = IntSize(barrelSize.toInt(), barrelSize.toInt())
+                )
+            }
+        }
+    }
 }
 
 private fun DrawScope.drawPrincess(winObjetive: WinObjetive, painter: Painter) {
@@ -241,7 +279,6 @@ private fun DrawScope.drawBarrel(barrel: Barrel) {
 
 private fun DrawScope.drawPlatform(platform: Platform, painter: Painter) {
     val startY = platform.getYAt(platform.left)
-    val endY = platform.getYAt(platform.right)
 
     // Calcular el ángulo de inclinación en grados
     val angleRad = kotlin.math.atan(platform.slope)

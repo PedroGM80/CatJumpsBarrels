@@ -6,7 +6,15 @@
       "Bash(./gradlew.bat build)",
       "Bash(git branch:*)",
       "Bash(git checkout:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(./gradlew :model:clean :model:build:*)",
+      "Bash(./gradlew :composeApp:compileKotlinJvm:*)",
+      "Bash(./gradlew composeApp:run:*)",
+      "Bash(taskkill:*)",
+      "Bash(findstr:*)",
+      "Bash(Select-String -Pattern \"ERROR|BossAnimation|Boss:|drawable/dog\")",
+      "Bash(Select-Object -Last 30)"
     ],
     "deny": [],
     "ask": []
