@@ -1,46 +1,63 @@
 # Cat Jump Barrels
 
-Un clon de Donkey Kong desarrollado con Kotlin y Compose Multiplatform.
+A classic arcade platformer game developed with Kotlin and Compose Multiplatform.
 
-## Controles
+![Game Screenshot](screenShot.png)
 
-| Tecla | Accion |
-|-------|--------|
-| `A` / `←` | Mover izquierda |
-| `D` / `→` | Mover derecha |
-| `W` / `↑` | Subir escalera |
-| `S` / `↓` | Bajar escalera |
-| `ESPACIO` | Saltar |
-| `P` / `ESC` | Pausar |
-| `R` | Reiniciar (tras Game Over o Victoria) |
+## Description
 
-## Como jugar
+Cat Jump Barrels is a retro arcade platformer where you control a character who must dodge barrels thrown by a gorilla while climbing platforms and ladders to rescue the princess at the top. The game is built with modern Kotlin and Compose Multiplatform technologies, enabling native execution across multiple platforms.
 
-1. Controla al personaje azul en la parte inferior
-2. Esquiva los barriles que lanza el gorila
-3. Sube por las escaleras para llegar a las plataformas superiores
-4. Salta sobre los barriles para ganar 100 puntos
-5. Llega hasta la princesa en la parte superior para ganar
+## Features
 
-## Mecanicas
+- Classic platformer physics and mechanics
+- Score system with bonuses for jumping over barrels
+- Life system with temporary invincibility after taking damage
+- Interactive ladders and multiple platforms
+- Smooth animations and vector graphics
+- Multi-platform support (Windows, macOS, Linux)
 
-- **Saltar barriles**: +100 puntos
-- **Rescatar princesa**: +1000 puntos
-- **Vidas**: 3 (con invencibilidad temporal tras perder una)
-- **Escaleras**: Puedes saltar desde las escaleras
+## Controls
 
-## Requisitos
+| Key | Action |
+|-----|--------|
+| `A` / `←` | Move left |
+| `D` / `→` | Move right |
+| `W` / `↑` | Climb up ladder |
+| `S` / `↓` | Climb down ladder |
+| `SPACE` | Jump |
+| `P` / `ESC` | Pause |
+| `R` | Restart (after Game Over or Victory) |
 
-- JDK 17 o superior
+## How to Play
+
+1. Control the blue character at the bottom of the screen
+2. Dodge the barrels thrown by the gorilla
+3. Climb ladders to reach higher platforms
+4. Jump over barrels to earn 100 points
+5. Reach the princess at the top to win
+
+## Game Mechanics
+
+- **Jump over barrels**: +100 points
+- **Rescue the princess**: +1000 points
+- **Lives**: 3 (with temporary invincibility after losing one)
+- **Ladders**: You can jump while on ladders
+
+## Requirements
+
+- JDK 17 or higher
 - Gradle 8.x
 
-## Ejecutar
+## Installation and Execution
+
+### Run in development mode
 
 ```bash
 ./gradlew :composeApp:run
 ```
 
-## Compilar distribuible
+### Build distributable
 
 ```bash
 # Windows (MSI)
@@ -53,28 +70,50 @@ Un clon de Donkey Kong desarrollado con Kotlin y Compose Multiplatform.
 ./gradlew :composeApp:packageDeb
 ```
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 composeApp/src/jvmMain/kotlin/dev/pgm/game/
-├── main.kt          # Punto de entrada
-├── Game.kt          # Composable principal y manejo de input
-├── GameModel.kt     # Modelos de datos (Player, Barrel, Platform, etc.)
-├── GameEngine.kt    # Logica del juego (fisica, colisiones, IA)
-├── GameRenderer.kt  # Renderizado grafico
-├── ImageLoader.kt   # Sistema de carga de sprites (opcional)
-└── Platform.kt      # Info de plataforma
+├── main.kt          # Entry point
+├── Game.kt          # Main composable and input handling
+├── GameModel.kt     # Data models (Player, Barrel, Platform, etc.)
+├── GameEngine.kt    # Game logic (physics, collisions, AI)
+├── GameRenderer.kt  # Graphics rendering
+├── ImageLoader.kt   # Sprite loading system (optional)
+└── Platform.kt      # Platform information
 ```
 
-## Personalizar graficos
+## Customizing Graphics
 
-El juego usa graficos vectoriales por defecto. Para usar sprites PNG:
+The game uses vector graphics by default. To use PNG sprites:
 
-1. Coloca imagenes en `composeApp/src/jvmMain/resources/sprites/`
-2. Modifica `ImageLoader.kt` y `GameRenderer.kt`
+1. Place images in `composeApp/src/jvmMain/resources/sprites/`
+2. Modify `ImageLoader.kt` and `GameRenderer.kt`
 
-## Tecnologias
+## Technologies
 
-- Kotlin 2.1.0
-- Compose Multiplatform 1.7.3
-- Coroutines para el game loop
+- **Kotlin** 2.1.0 - Main programming language
+- **Compose Multiplatform** 1.7.3 - Declarative UI framework
+- **Coroutines** - Asynchronous game loop management
+- **Gradle** - Build system and dependency management
+
+## Architecture
+
+The project follows Clean Architecture principles with separation of concerns:
+
+- **Presentation Layer**: Composables and input handling (`Game.kt`)
+- **Domain Layer**: Game logic and business rules (`GameEngine.kt`)
+- **Data Layer**: Data models (`GameModel.kt`)
+- **Rendering Layer**: Graphics rendering system (`GameRenderer.kt`)
+
+## Development
+
+This project uses Compose Multiplatform, which enables:
+- Hot reload development for rapid iteration
+- Shared code across platforms
+- Modern declarative UI with Jetpack Compose
+- Native compilation for each target platform
+
+---
+
+Developed with ❤️ using Kotlin and Compose Multiplatform
