@@ -225,13 +225,13 @@ private fun DrawScope.drawBarrelStackBehindBoss(dk: Boss) {
 
     val barrelSize = 25f
     val barrelSpacing = 28f
-    val verticalSpacing = 18f
+    val verticalSpacing = 12f
 
     val stackY = dk.position.y + dk.size - barrelSize
-    val startX = dk.position.x + barrelSize * 4
+    val startX = dk.position.x + barrelSize * 6
 
-    for (row in 0..4) {
-        val barrelsInRow = 5 - row
+    for (row in 0..6) {
+        val barrelsInRow = 7 - row
         val rowY = stackY - (row * verticalSpacing)
         val rowStartX = startX - (row * (barrelSpacing / 2f))
 
