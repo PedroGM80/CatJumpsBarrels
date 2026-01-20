@@ -38,6 +38,9 @@ kotlin {
             // Coil (para imágenes)
             implementation("io.coil-kt.coil3:coil-compose:3.0.4")
             implementation("io.coil-kt.coil3:coil-compose-core:3.0.4")
+
+            // Navigation
+            implementation(libs.navigation.compose)
         }
 
         jvmMain.dependencies {

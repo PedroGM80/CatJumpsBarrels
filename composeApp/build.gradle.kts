@@ -40,6 +40,9 @@ kotlin {
             // Koin para inyección de dependencias multiplataforma
             implementation("io.insert-koin:koin-core:3.5.3")
             implementation("io.insert-koin:koin-compose:1.1.2")
+
+            // Navigation
+            implementation(libs.navigation.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
