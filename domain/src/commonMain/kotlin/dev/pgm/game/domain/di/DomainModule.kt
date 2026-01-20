@@ -25,4 +25,9 @@ val domainModule = module {
     factoryOf(::CheckCollisionsUseCase)
     factoryOf(::SpawnBarrelUseCase)
     factoryOf(::UpdateParticlesUseCase)
+
+    // High Score UseCases
+    factoryOf(::GetTop40ScoresUseCase)
+    factoryOf(::CheckHighScoreUseCase)
+    factoryOf(::SaveHighScoreUseCase)
 }
