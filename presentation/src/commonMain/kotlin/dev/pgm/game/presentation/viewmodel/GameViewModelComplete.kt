@@ -1,8 +1,10 @@
 package dev.pgm.game.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.pgm.game.domain.usecase.*
 import dev.pgm.game.input.GameInput
+import kotlinx.coroutines.launch
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.CatAnimation
@@ -23,7 +25,9 @@ class GameViewModelComplete(
     private val updateBarrelsUseCase: UpdateBarrelsUseCase,
     private val checkCollisionsUseCase: CheckCollisionsUseCase,
     private val spawnBarrelUseCase: SpawnBarrelUseCase,
-    private val updateParticlesUseCase: UpdateParticlesUseCase
+    private val updateParticlesUseCase: UpdateParticlesUseCase,
+    private val checkHighScoreUseCase: CheckHighScoreUseCase,
+    private val saveHighScoreUseCase: SaveHighScoreUseCase
 ) : ViewModel() {
 
     private val _gameState = MutableStateFlow(
@@ -32,6 +36,12 @@ class GameViewModelComplete(
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
     private var animationTimer = 0f
+
+    // High Score Dialog State
+    private val _showHighScoreDialog = MutableStateFlow(false)
+    val showHighScoreDialog: StateFlow<Boolean> = _showHighScoreDialog.asStateFlow()
+
+    private val _pendingScore = MutableStateFlow(0)
 
     /**
      * Actualiza el estado del juego cada frame.
@@ -220,5 +230,44 @@ class GameViewModelComplete(
         } else {
             state
         }
+    }
+
+    /**
+     * Verifica si el score actual califica para el top 40.
+     * Muestra el diálogo de high score si califica.
+     */
+    fun checkIfHighScore() {
+        viewModelScope.launch {
+            val currentScore = _gameState.value.score
+            if (currentScore > 0) {
+                val isHigh = checkHighScoreUseCase(currentScore)
+                if (isHigh) {
+                    _pendingScore.value = currentScore
+                    _showHighScoreDialog.value = true
+                }
+            }
+        }
+    }
+
+    /**
+     * Guarda el high score con el nombre del jugador.
+     * @param playerName Nombre del jugador
+     * @param onComplete Callback ejecutado después de guardar
+     */
+    fun saveHighScore(playerName: String, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            saveHighScoreUseCase(playerName, _pendingScore.value)
+            _showHighScoreDialog.value = false
+            onComplete()
+        }
+    }
+
+    /**
+     * Cierra el diálogo de high score sin guardar.
+     * @param onComplete Callback ejecutado después de cerrar
+     */
+    fun dismissHighScoreDialog(onComplete: () -> Unit) {
+        _showHighScoreDialog.value = false
+        onComplete()
     }
 }
