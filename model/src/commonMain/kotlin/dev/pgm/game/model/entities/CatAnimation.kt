@@ -1,7 +1,7 @@
 package dev.pgm.game.model.entities
 
 import androidx.compose.ui.graphics.ImageBitmap
-import dev.pgm.game.data.resources.ImageLoader
+import dev.pgm.game.core.resources.ImageLoader
 import kotlinx.coroutines.*
 
 object CatAnimation {

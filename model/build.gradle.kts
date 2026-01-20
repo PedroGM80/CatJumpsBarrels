@@ -10,7 +10,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core"))
-            implementation(project(":data"))  // CatAnimation usa ImageLoader
+            // Removed :data dependency to avoid circular dependency with Room setup
 
             // Compose UI para Offset, Color, ImageBitmap, IntSize
             implementation(compose.ui)
