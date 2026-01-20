@@ -17,10 +17,10 @@ kotlin {
             implementation(compose.ui)
 
             // Coroutines
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            implementation(libs.kotlinx.coroutines.core)
 
             // Koin for DI
-            implementation("io.insert-koin:koin-core:3.5.3")
+            implementation(libs.koin.core)
         }
     }
 }

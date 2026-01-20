@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -17,7 +18,10 @@ kotlin {
             implementation(compose.runtime)
 
             // Coroutines para CatAnimation
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            implementation(libs.kotlinx.coroutines.core)
+            
+            // Serialization
+            implementation(libs.kotlinx.serialization.json)
         }
     }
 }

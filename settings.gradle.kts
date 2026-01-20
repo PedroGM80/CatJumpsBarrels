@@ -1,3 +1,4 @@
+// Re-trigger build
 rootProject.name = "CatJumpsBarrels"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -12,6 +13,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
@@ -25,11 +27,12 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 include(":core")

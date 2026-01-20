@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.composeHotReload)
 }
 
 kotlin {
@@ -27,19 +26,19 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.runtime.compose)
 
-            // Coil para carga de imágenes moderna
-            implementation("io.coil-kt.coil3:coil-compose:3.0.4")
-            implementation("io.coil-kt.coil3:coil-compose-core:3.0.4")
+            // Coil
+            implementation(libs.coil.compose)
+            implementation(libs.coil.compose.core)
 
-            // Coroutines para procesamiento paralelo y asíncrono
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            // Coroutines
+            implementation(libs.kotlinx.coroutines.core)
 
-            // Koin para inyección de dependencias multiplataforma
-            implementation("io.insert-koin:koin-core:3.5.3")
-            implementation("io.insert-koin:koin-compose:1.1.2")
+            // Koin
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
 
             // Navigation
             implementation(libs.navigation.compose)
@@ -49,11 +48,10 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.kotlinx.coroutines.swing)
         }
     }
 }
-
 
 compose.desktop {
     application {

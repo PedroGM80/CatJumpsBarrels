@@ -25,26 +25,27 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
 
             // Lifecycle
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.runtime.compose)
 
             // Coroutines
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
 
             // Koin
-            implementation("io.insert-koin:koin-core:3.5.3")
-            implementation("io.insert-koin:koin-compose:1.1.2")
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
 
             // Coil (para imágenes)
-            implementation("io.coil-kt.coil3:coil-compose:3.0.4")
-            implementation("io.coil-kt.coil3:coil-compose-core:3.0.4")
+            implementation(libs.coil.compose)
+            implementation(libs.coil.compose.core)
 
             // Navigation
             implementation(libs.navigation.compose)
         }
 
         jvmMain.dependencies {
-            implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.kotlinx.coroutines.swing)
         }
     }
 }
