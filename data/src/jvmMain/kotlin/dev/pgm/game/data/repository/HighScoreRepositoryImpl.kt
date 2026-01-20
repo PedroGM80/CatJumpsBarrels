@@ -1,71 +1,43 @@
 package dev.pgm.game.data.repository
 
-import dev.pgm.game.data.database.dao.HighScoreDao
-import dev.pgm.game.data.database.entity.HighScoreEntity
 import dev.pgm.game.domain.repository.HighScoreRepository
-import dev.pgm.game.model.entities.HighScore
-import java.text.SimpleDateFormat
-import java.util.*
+import dev.pgm.game.model.dto.HighScoreDto
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 
-/**
- * Implementación del repositorio de high scores usando Room.
- */
-class HighScoreRepositoryImpl(
-    private val dao: HighScoreDao
-) : HighScoreRepository {
+class HighScoreRepositoryImpl : HighScoreRepository {
 
-    override suspend fun getTop40Scores(): List<HighScore> {
-        return dao.getTop40Scores().map { it.toDomain() }
+    private val storageDir = File(System.getProperty("user.home"), ".catjumpbarrels")
+    private val highScoresFile = File(storageDir, "highscores.json")
+
+    private val json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
     }
 
-    override suspend fun isHighScore(score: Int): Boolean {
-        val count = dao.getRecordCount()
-
-        // Si hay menos de 40 records, siempre califica
-        if (count < 40) return true
-
-        // Si hay 40 o más, verificar si el score es mayor que el mínimo
-        val minScore = dao.getMinScore() ?: return true
-        return score > minScore
-    }
-
-    override suspend fun saveScore(
-        playerName: String,
-        score: Int,
-        timestamp: Long
-    ): Result<Unit> {
-        return try {
-            val entity = HighScoreEntity(
-                playerName = playerName,
-                score = score,
-                timestamp = timestamp
-            )
-
-            dao.insertScore(entity)
-
-            // Si hay más de 40 records, eliminar el más bajo
-            val count = dao.getRecordCount()
-            if (count > 40) {
-                dao.deleteLowestScore()
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    init {
+        if (!storageDir.exists()) {
+            storageDir.mkdirs()
         }
     }
 
-    /**
-     * Convierte una entidad de Room a modelo de dominio.
-     */
-    private fun HighScoreEntity.toDomain(): HighScore {
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        return HighScore(
-            id = id,
-            playerName = playerName,
-            score = score,
-            timestamp = timestamp,
-            formattedDate = dateFormat.format(Date(timestamp))
-        )
+    override suspend fun getHighScores(): List<HighScoreDto> {
+        if (!highScoresFile.exists()) {
+            return emptyList()
+        }
+        return try {
+            val content = highScoresFile.readText()
+            json.decodeFromString<List<HighScoreDto>>(content)
+        } catch (e: Exception) {
+            // En caso de archivo corrupto, devolver lista vacía
+            emptyList()
+        }
+    }
+
+    override suspend fun saveHighScores(scores: List<HighScoreDto>) {
+        val sortedScores = scores.sortedByDescending { it.score }.take(40)
+        val content = json.encodeToString(sortedScores)
+        highScoresFile.writeText(content)
     }
 }
