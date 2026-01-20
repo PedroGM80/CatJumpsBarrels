@@ -2,7 +2,6 @@ package dev.pgm.game.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -114,16 +113,14 @@ private fun MenuButton(
                 color = if (isPressed) Color(0xFF333333) else Color(0xFF1A1A1A),
                 shape = RoundedCornerShape(8.dp)
             )
-            .clickable {
-                onClick()
-            }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onPress = {
+                    onPress = { 
                         isPressed = true
                         tryAwaitRelease()
-                        isPressed = false
-                    }
+                        isPressed = false 
+                    },
+                    onTap = { onClick() }
                 )
             },
         contentAlignment = Alignment.Center

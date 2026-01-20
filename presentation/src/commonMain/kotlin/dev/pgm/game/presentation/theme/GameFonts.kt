@@ -2,25 +2,19 @@ package dev.pgm.game.presentation.theme
 
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 
 /**
- * Fuentes personalizadas del juego usando Google Fonts
+ * Fuentes personalizadas del juego.
  */
 object GameFonts {
     /**
-     * Fuente arcade retro Press Start 2P de Google Fonts
-     * Perfecta para juegos estilo Donkey Kong / arcade clásico
+     * Usamos Monospace por defecto ya que tiene un estilo "retro" / "arcade"
+     * y está disponible en todos los sistemas sin necesidad de archivos externos.
      */
-    val PressStart2P = FontFamily(
-        Font(
-            resource = "font/PressStart2P-Regular.ttf",
-            weight = FontWeight.Normal
-        )
-    )
+    val PressStart2P = FontFamily.Monospace
 
     /**
-     * Fuente principal del juego - usar Press Start 2P para estilo arcade
+     * Fuente principal del juego
      */
     val GameFont = PressStart2P
 }
