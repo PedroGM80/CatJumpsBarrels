@@ -1,5 +1,6 @@
 package dev.pgm.game.presentation.ui
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -7,7 +8,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +44,12 @@ fun GameScreen(
     var shouldRestart by remember { mutableStateOf(false) }
     var shouldTogglePause by remember { mutableStateOf(false) }
     val inputHandler = remember { InputHandler() }
+    val focusRequester = remember { FocusRequester() }
+
+    // Request focus when the screen is first composed
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     // Detectar fin de juego y verificar high score
     LaunchedEffect(gameState.isGameOver, gameState.isWon) {
@@ -63,21 +73,39 @@ fun GameScreen(
         }
     }
 
+    // Keep a reference to the current input that can be read from the game loop
+    val currentInput by rememberUpdatedState(input)
+
     // Game loop
-    LaunchedEffect(input) {
+    LaunchedEffect(Unit) {
         var lastFrameTime = System.currentTimeMillis()
         while (isActive) {
             val currentTime = System.currentTimeMillis()
             val deltaTime = (currentTime - lastFrameTime) / 1000f
             lastFrameTime = currentTime
 
-            viewModel.tick(deltaTime, input)
+            viewModel.tick(deltaTime, currentInput)
 
             delay(GameConstants.FRAME_DELAY_MS)
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .focusRequester(focusRequester)
+            .focusable()
+            .onKeyEvent { event ->
+                val (newInput, consumed) = inputHandler.handleKeyEvent(
+                    event = event,
+                    currentInput = input,
+                    onRestart = { shouldRestart = true },
+                    onPause = { shouldTogglePause = !shouldTogglePause }
+                )
+                input = newInput
+                consumed
+            }
+    ) {
         GameRenderer(
             state = gameState,
             modifier = Modifier
