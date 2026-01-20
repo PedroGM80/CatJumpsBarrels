@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.pgm.game.domain.usecase.GetTop40ScoresUseCase
 import dev.pgm.game.model.entities.HighScore
+import dev.pgm.game.presentation.mapper.toHighScore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +32,7 @@ class HighScoresViewModel(
         viewModelScope.launch {
             _uiState.value = HighScoresUiState.Loading
             try {
-                val scores = getTop40ScoresUseCase()
+                val scores = getTop40ScoresUseCase().map { it.toHighScore() }
                 _uiState.value = HighScoresUiState.Success(scores)
             } catch (e: Exception) {
                 _uiState.value = HighScoresUiState.Error(e.message ?: "Unknown error")

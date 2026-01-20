@@ -12,7 +12,11 @@ import org.koin.dsl.module
  */
 val presentationModule = module {
     // ViewModels (Singletons)
-    singleOf(::GameViewModelComplete)
+    single {
+        GameViewModelComplete(
+            get(), get(), get(), get(), get(), get(), get()
+        )
+    }
     singleOf(::MainMenuViewModel)
     singleOf(::HighScoresViewModel)
 }
