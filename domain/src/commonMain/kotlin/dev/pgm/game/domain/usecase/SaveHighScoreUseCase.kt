@@ -1,15 +1,23 @@
 package dev.pgm.game.domain.usecase
 
 import dev.pgm.game.domain.repository.HighScoreRepository
+import dev.pgm.game.model.dto.HighScoreDto
 
 /**
- * UseCase para guardar un nuevo high score.
+ * Caso de uso para guardar un nuevo high score.
  */
 class SaveHighScoreUseCase(
-    private val repository: HighScoreRepository
+    private val highScoreRepository: HighScoreRepository
 ) {
-    suspend operator fun invoke(playerName: String, score: Int): Result<Unit> {
-        val timestamp = System.currentTimeMillis()
-        return repository.saveScore(playerName, score, timestamp)
+    suspend operator fun invoke(playerName: String, score: Int) {
+        val currentScores = highScoreRepository.getHighScores().toMutableList()
+        currentScores.add(
+            HighScoreDto(
+                playerName = playerName,
+                score = score,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+        highScoreRepository.saveHighScores(currentScores)
     }
 }

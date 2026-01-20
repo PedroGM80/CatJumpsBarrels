@@ -3,12 +3,17 @@ package dev.pgm.game.domain.usecase
 import dev.pgm.game.domain.repository.HighScoreRepository
 
 /**
- * UseCase para verificar si un score califica para el top 40.
+ * Caso de uso para verificar si un score es un high score.
  */
 class CheckHighScoreUseCase(
-    private val repository: HighScoreRepository
+    private val highScoreRepository: HighScoreRepository
 ) {
     suspend operator fun invoke(score: Int): Boolean {
-        return repository.isHighScore(score)
+        val highScores = highScoreRepository.getHighScores()
+        if (highScores.size < 40) {
+            return true
+        }
+        val minScore = highScores.minByOrNull { it.score }?.score ?: 0
+        return score > minScore
     }
 }
