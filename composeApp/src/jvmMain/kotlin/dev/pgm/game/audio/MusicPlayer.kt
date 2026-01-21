@@ -67,74 +67,89 @@ object MusicPlayer {
      * Usa una progresión armónica suave con tempo lento.
      */
     private fun generateMenuMelody(): ByteArray {
-        // Tempo: 90 BPM, cada nota negra = 667ms
-        val eighthNote = 333  // Corchea
-        val quarterNote = 667 // Negra
-        val halfNote = 1334   // Blanca
+        // Tempo: 75 BPM (más lento), cada nota negra = 800ms
+        val eighthNote = 400  // Corchea
+        val quarterNote = 800 // Negra
+        val halfNote = 1600   // Blanca
+        val wholeNote = 3200  // Redonda
 
-        // Melodía principal - escala pentatónica para sonar más tranquila
+        // Melodía principal - progresión más armoniosa y espaciada
         val melody = listOf(
-            // Frase 1 - Subida suave
-            Note(523.0, quarterNote),   // C5
-            Note(587.0, eighthNote),    // D5
-            Note(659.0, eighthNote),    // E5
-            Note(784.0, quarterNote),   // G5
-            Note(659.0, quarterNote),   // E5
+            // Frase 1 - Introducción tranquila (I - V - vi - IV)
+            Note(523.0, halfNote),      // C5
+            Note(0.0, quarterNote),     // Silencio
+            Note(659.0, halfNote),      // E5
+            Note(0.0, quarterNote),     // Silencio
             Note(587.0, halfNote),      // D5
-
-            // Frase 2 - Respuesta
             Note(523.0, quarterNote),   // C5
-            Note(392.0, eighthNote),    // G4
-            Note(440.0, eighthNote),    // A4
+            Note(392.0, wholeNote),     // G4 - resolución larga
+
+            // Frase 2 - Desarrollo (vi - IV - I - V)
+            Note(440.0, halfNote),      // A4
+            Note(0.0, quarterNote),     // Silencio
+            Note(523.0, halfNote),      // C5
+            Note(587.0, quarterNote),   // D5
+            Note(523.0, halfNote),      // C5
+            Note(0.0, quarterNote),     // Silencio
+            Note(392.0, wholeNote),     // G4
+
+            // Frase 3 - Clímax suave (I - iii - IV - V)
+            Note(523.0, quarterNote),   // C5
+            Note(587.0, quarterNote),   // D5
+            Note(659.0, halfNote),      // E5
+            Note(0.0, quarterNote),     // Silencio
+            Note(587.0, halfNote),      // D5
+            Note(523.0, quarterNote),   // C5
+            Note(440.0, wholeNote),     // A4
+
+            // Frase 4 - Resolución final (IV - V - I)
             Note(523.0, quarterNote),   // C5
             Note(440.0, quarterNote),   // A4
             Note(392.0, halfNote),      // G4
-
-            // Frase 3 - Variación
-            Note(659.0, quarterNote),   // E5
-            Note(587.0, eighthNote),    // D5
-            Note(523.0, eighthNote),    // C5
-            Note(587.0, quarterNote),   // D5
-            Note(523.0, quarterNote),   // C5
-            Note(392.0, halfNote),      // G4
-
-            // Frase 4 - Resolución
-            Note(523.0, quarterNote),   // C5
-            Note(440.0, eighthNote),    // A4
-            Note(523.0, eighthNote),    // C5
-            Note(392.0, quarterNote),   // G4
-            Note(330.0, quarterNote),   // E4
-            Note(262.0, halfNote + quarterNote),  // C4 - nota larga para cerrar
-        )
-
-        // Bajo acompañamiento - notas más graves, más espaciadas
-        val bass = listOf(
-            // Acompaña cada frase con las fundamentales
-            Note(262.0, halfNote),      // C4
-            Note(294.0, halfNote),      // D4
-            Note(196.0, halfNote),      // G3
-            Note(220.0, halfNote),      // A3
-
-            Note(262.0, halfNote),      // C4
-            Note(196.0, halfNote),      // G3
-            Note(220.0, halfNote),      // A3
-            Note(262.0, halfNote),      // C4
-
+            Note(0.0, quarterNote),     // Silencio
             Note(330.0, halfNote),      // E4
-            Note(294.0, halfNote),      // D4
-            Note(196.0, halfNote),      // G3
-            Note(262.0, halfNote),      // C4
-
-            Note(262.0, halfNote),      // C4
-            Note(220.0, halfNote),      // A3
-            Note(196.0, halfNote),      // G3
-            Note(262.0, halfNote + quarterNote),  // C4
+            Note(262.0, wholeNote),     // C4 - cierre en tónica
         )
 
-        // Mezclar melodía y bajo (el bajo a menor volumen)
+        // Bajo acompañamiento - fundamental de cada acorde, muy suave
+        val bass = listOf(
+            // Acorde C (I)
+            Note(262.0, wholeNote),     // C4
+            Note(0.0, quarterNote),
+            // Acorde G (V)
+            Note(196.0, wholeNote),     // G3
+            Note(0.0, quarterNote),
+            // Acorde Am (vi)
+            Note(220.0, wholeNote),     // A3
+
+            // Acorde F (IV)
+            Note(175.0, wholeNote),     // F3
+            Note(0.0, quarterNote),
+            // Acorde C (I)
+            Note(262.0, wholeNote),     // C4
+            Note(0.0, quarterNote),
+            // Acorde G (V)
+            Note(196.0, wholeNote),     // G3
+
+            // Acorde C (I)
+            Note(262.0, wholeNote),     // C4
+            Note(0.0, quarterNote),
+            // Acorde Em (iii)
+            Note(165.0, wholeNote),     // E3
+            Note(220.0, wholeNote),     // A3
+
+            // Acorde F (IV)
+            Note(175.0, wholeNote),     // F3
+            // Acorde G (V)
+            Note(196.0, halfNote),      // G3
+            // Acorde C (I) - final
+            Note(262.0, wholeNote),     // C4
+        )
+
+        // Mezclar melodía y bajo con volúmenes mucho más bajos
         return mixTracks(
-            generateTrack(melody, volume = 25),
-            generateTrack(bass, volume = 15)
+            generateTrack(melody, volume = 12),  // Melodía muy suave
+            generateTrack(bass, volume = 8)      // Bajo casi imperceptible
         )
     }
 
@@ -153,14 +168,19 @@ object MusicPlayer {
         val numSamples = (SAMPLE_RATE * durationMs / 1000).toInt()
         val samples = ByteArray(numSamples)
 
+        // Si la frecuencia es 0, generar silencio
+        if (frequency == 0.0) {
+            return samples // Array de ceros = silencio
+        }
+
         for (i in 0 until numSamples) {
             val time = i / SAMPLE_RATE
             // Onda cuadrada
             val value = if (sin(2.0 * PI * frequency * time) >= 0) 1.0 else -1.0
 
-            // Envelope ADSR simple para suavizar el inicio y final
-            val attackTime = 0.05  // 50ms
-            val releaseTime = 0.1  // 100ms
+            // Envelope ADSR más suave para música de fondo
+            val attackTime = 0.08  // 80ms - ataque más suave
+            val releaseTime = 0.15  // 150ms - release más largo
             val timeInSeconds = i / SAMPLE_RATE
             val durationSeconds = durationMs / 1000.0
 
