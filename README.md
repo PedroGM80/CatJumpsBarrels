@@ -1,8 +1,31 @@
 # Cat Jump Barrels 🐱
 
-A retro arcade platformer inspired by the Atari 2600 version of Donkey Kong, developed with Kotlin and Compose Multiplatform.
+A retro arcade platformer inspired by the Atari 2600 version of Donkey Kong, built with modern Kotlin and Compose Multiplatform.
 
 ![Game Screenshot](screenShot.png)
+
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue.svg)](https://kotlinlang.org)
+[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.7.3-green.svg)](https://www.jetbrains.com/lp/compose-multiplatform/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+## 📑 Table of Contents
+
+- [Description](#-description)
+- [Features](#-features)
+- [Controls](#-controls)
+- [How to Play](#-how-to-play)
+- [Game Mechanics](#-game-mechanics)
+- [Requirements](#-requirements)
+- [Installation and Execution](#-installation-and-execution)
+- [Project Structure](#-project-structure)
+- [Architecture](#-architecture)
+- [Audio System](#-audio-system)
+- [Technologies](#-technologies)
+- [Development](#-development)
+- [Troubleshooting](#-troubleshooting)
+- [Credits](#-credits)
+- [Recent Changes](#-recent-changes)
+- [Contributing](#-contributing)
 
 ## 🎮 Description
 
@@ -32,11 +55,13 @@ Cat Jump Barrels is a nostalgic platformer where you control a cat who must dodg
 - **Fullscreen scaling** - Game scales proportionally to fit any screen size
 
 ### Visuals
-- **Smooth animations** for cat, boss, and barrel sprites
-- **Particle effects** for deaths and scoring
-- **Score popups** with fade animations
+- **Smooth sprite animations** - 72 hand-crafted frames for cat (idle, run, jump, fall, climb, hurt, dead)
+- **Boss animations** - 7 frames for enemy behavior (idle, throw)
+- **Particle effects** for deaths and scoring with physics simulation
+- **Score popups** with fade animations and vertical movement
 - **Retro pixel art** style with industrial theme
-- **HUD display** showing score, high score, level, and lives
+- **Dynamic HUD** showing score, high score, level, and lives with retro fonts
+- **Adaptive scaling** - Game renders at 600x700 and scales to fit any window size
 
 ## 🎯 Controls
 
@@ -80,23 +105,63 @@ Cat Jump Barrels is a nostalgic platformer where you control a cat who must dodg
 
 ## 🚀 Installation and Execution
 
-### Run in development mode
+### Prerequisites
+Ensure you have the following installed:
+- **JDK 17** or higher ([Download](https://adoptium.net/))
+- **Gradle 8.x** (included via wrapper)
+- **Git** (for cloning the repository)
 
+### Quick Start
+
+1. **Clone the repository**
 ```bash
-./gradlew :composeApp:run
+git clone https://github.com/yourusername/CatJumpsBarrels.git
+cd CatJumpsBarrels
 ```
 
-### Build distributable packages
+2. **Run in development mode**
+```bash
+# Linux/macOS
+./gradlew :composeApp:run
+
+# Windows
+gradlew.bat :composeApp:run
+```
+
+### Build Distributable Packages
+
+Create native installers for your platform:
 
 ```bash
-# Windows (MSI)
+# Windows (MSI installer)
 ./gradlew :composeApp:packageMsi
 
-# macOS (DMG)
+# macOS (DMG installer)
 ./gradlew :composeApp:packageDmg
 
-# Linux (DEB)
+# Linux (DEB package)
 ./gradlew :composeApp:packageDeb
+
+# Universal JAR (all platforms)
+./gradlew :composeApp:packageUberJarForCurrentOS
+```
+
+Installers will be created in `composeApp/build/compose/binaries/main/`
+
+### Development Commands
+
+```bash
+# Clean build
+./gradlew clean
+
+# Run tests
+./gradlew test
+
+# Check dependencies
+./gradlew dependencies
+
+# Build without running
+./gradlew :composeApp:build
 ```
 
 ## 📁 Project Structure
@@ -105,39 +170,58 @@ The project follows **Clean Architecture** with modular organization:
 
 ```
 CatJumpsBarrels/
-├── composeApp/          # Main application module
-│   └── src/jvmMain/kotlin/dev/pgm/game/
-│       ├── audio/       # RetroSoundGenerator & MusicPlayer
-│       ├── data/        # Room database & repositories
-│       ├── di/          # Koin dependency injection
-│       ├── domain/      # Use cases (business logic)
-│       ├── input/       # InputHandler
-│       ├── model/       # Game entities & state
-│       ├── presentation/ # ViewModels, UI, navigation
-│       └── Game.kt      # Main entry point
+├── composeApp/          # Main application module (JVM Desktop)
+│   └── src/jvmMain/
+│       ├── kotlin/dev/pgm/game/
+│       │   ├── audio/        # RetroSoundGenerator & MusicPlayer
+│       │   ├── di/           # Koin dependency injection
+│       │   ├── presentation/ # UI & rendering
+│       │   │   ├── renderer/ # GameRenderer (Canvas drawing)
+│       │   │   └── ui/       # Composable screens
+│       │   ├── resources/    # AnimationProvider (centralized sprite loading)
+│       │   └── Game.kt       # Main entry point
+│       │
+│       └── composeResources/drawable/  # Sprite assets
+│           ├── cat_*.png     # 72 cat animation frames
+│           ├── dog_*.png     # 7 boss animation frames
+│           ├── barrel_*.png  # Barrel sprites
+│           └── *.png         # Backgrounds, platforms, textures
 │
-├── model/               # Shared model module
+├── core/                # Shared core utilities
+│   └── src/commonMain/kotlin/dev/pgm/game/core/
+│       └── utils/       # GameRect and geometry helpers
+│
+├── model/               # Shared domain model
 │   └── src/commonMain/kotlin/dev/pgm/game/model/
 │       ├── core/        # GameConstants, GameState
-│       ├── entities/    # Player, Barrel, Boss, Platform, etc.
+│       ├── entities/    # Player, Barrel, Boss, Platform, Ladder, etc.
 │       └── utils/       # Particle, ScorePopup
 │
-├── domain/              # Shared domain module
+├── domain/              # Business logic (Use Cases)
 │   └── src/commonMain/kotlin/dev/pgm/game/domain/
 │       ├── usecase/     # Game logic use cases
+│       │   ├── UpdatePlayerUseCase
+│       │   ├── UpdateBarrelsUseCase
+│       │   ├── SpawnBarrelUseCase
+│       │   ├── CheckCollisionsUseCase
+│       │   └── UpdateParticlesUseCase
 │       ├── factory/     # ParticleFactory
-│       └── services/    # TimeProvider
+│       └── di/          # Domain DI module
 │
-├── data/                # Shared data module
-│   └── src/commonMain/kotlin/dev/pgm/game/data/
-│       ├── database/    # Room database
-│       └── repository/  # HighScoreRepository
+├── data/                # Data persistence layer
+│   └── src/
+│       ├── commonMain/kotlin/dev/pgm/game/data/
+│       │   ├── repository/  # HighScoreRepository (interface)
+│       │   └── di/          # Data DI module
+│       └── jvmMain/kotlin/dev/pgm/game/data/
+│           ├── database/    # Room database
+│           └── repository/  # Repository implementations
 │
-└── presentation/        # Shared presentation module
+└── presentation/        # Shared presentation logic
     └── src/commonMain/kotlin/dev/pgm/game/presentation/
-        ├── ui/          # MainMenu, Credits, HighScores
-        ├── viewmodel/   # ViewModels
-        └── theme/       # Fonts & styling
+        ├── ui/          # MainMenu, Credits, HighScores screens
+        ├── viewmodel/   # GameViewModelComplete, MainMenuViewModel
+        └── theme/       # GameFonts & styling
 ```
 
 ## 🏗️ Architecture
@@ -204,29 +288,111 @@ The menu features a catchy chiptune melody:
 
 ## 🎨 Technologies
 
-- **Kotlin** 2.1.0 - Main programming language
-- **Compose Multiplatform** 1.7.3 - Declarative UI framework
-- **Koin** - Dependency injection
-- **Room** - SQLite database for persistent storage
-- **Coroutines** - Asynchronous game loop and async operations
-- **Navigation Compose** - Screen navigation
-- **Gradle** - Build system and dependency management
+### Core Framework
+- **Kotlin** 2.1.0 - Modern, null-safe programming language
+- **Compose Multiplatform** 1.7.3 - Declarative UI framework for Desktop
+- **Jetpack Compose Desktop** - Native desktop UI rendering
+- **Gradle** 8.x - Build system and dependency management
+
+### Architecture & Patterns
+- **Clean Architecture** - Separation of concerns with layers (Presentation, Domain, Data)
+- **MVVM Pattern** - ViewModel-based state management
+- **Repository Pattern** - Data abstraction layer
+- **Use Case Pattern** - Single responsibility business logic
+- **Dependency Injection** - Koin 3.x for IoC container
+
+### Data & Persistence
+- **Room Database** - Type-safe SQLite ORM for high scores
+- **StateFlow** - Reactive state management
+- **Kotlin Coroutines** - Async operations and game loop
+
+### UI & Navigation
+- **Navigation Compose** - Type-safe screen navigation
+- **Compose Resources** - Multiplatform resource management
+- **Custom Fonts** - Press Start 2P retro font integration
+
+### Audio
+- **Java Sound API** - Low-level audio synthesis
+- **Custom DSP** - Square wave generator for 8-bit sounds
+- **Programmatic Music** - Chiptune composition engine
 
 ## 🎓 Development
 
-### Key Features of Development Setup
-- **Hot reload** for rapid UI iteration
-- **Modular architecture** for maintainability
-- **Type-safe navigation** with NavigationGraph
-- **State management** with StateFlow
-- **SOLID principles** throughout codebase
-- **Native compilation** for optimal performance
+### Key Development Features
 
-### Graphics System
-- Uses Jetpack Compose Canvas for rendering
-- Custom sprite animations with frame-based system
-- Particle effects with physics simulation
-- Scaling engine for fullscreen support (600x700 design resolution)
+**Code Organization**:
+- **Modular architecture** - 5 independent Gradle modules (composeApp, core, model, domain, data, presentation)
+- **Clean separation** - Clear boundaries between layers
+- **Type-safe** - Kotlin's null safety throughout
+- **SOLID principles** - Single responsibility, dependency inversion
+
+**Performance Optimizations**:
+- **Asynchronous loading** - Sprites loaded in parallel with coroutines
+- **Efficient rendering** - Canvas-based drawing with minimal allocations
+- **State caching** - AnimationProvider loads resources once
+- **Native compilation** - Optimized JVM bytecode
+
+**Developer Experience**:
+- **Hot reload** - Fast iteration with Compose preview
+- **Type-safe navigation** - Compile-time route checking
+- **Dependency injection** - Koin for testability and modularity
+- **Reactive state** - StateFlow for predictable UI updates
+- **Comprehensive logging** - Debug output for game state transitions
+
+### Graphics & Animation System
+
+**AnimationProvider** - Centralized sprite management:
+```kotlin
+// Loads all animations asynchronously at startup
+AnimationProvider.loadAllAnimations()
+
+// Provides animations to renderers
+val catAnimations = AnimationProvider.getCatAnimations()
+val bossAnimations = AnimationProvider.getBossAnimations()
+```
+
+**Rendering Pipeline**:
+- **Compose Canvas** for high-performance 2D rendering
+- **Frame-based animations** with configurable timing (ANIMATION_FRAME_DURATION)
+- **Transform system** for sprite rotation, scaling, and flipping
+- **Particle physics** with gravity, velocity, and alpha decay
+- **Adaptive scaling** maintains 600x700 aspect ratio on any screen size
+
+**Animation Details**:
+- Cat: 72 frames across 7 states (idle:10, run:8, jump:8, fall:8, climb:6, hurt:10, dead:10)
+- Boss: 7 frames across 2 states (idle:3, throwing:3, take:1)
+- All sprites loaded via Compose Multiplatform Resources (Res.readBytes)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Game doesn't start / Black screen**
+- Ensure JDK 17+ is installed: `java -version`
+- Check animations loaded: Look for "Error loading frame" in console
+- Clear Gradle cache: `./gradlew clean`
+
+**Performance issues**
+- The game runs at 60 FPS by default
+- Check system resources (CPU/GPU usage)
+- Reduce window size for better performance on older hardware
+
+**No sound**
+- Verify audio output device is working
+- Check system volume and game is not muted
+- Audio uses Java Sound API (works on all platforms)
+
+**High scores not saving**
+- Database is stored in user home directory
+- Check file permissions in `~/.catjumpsbarrels/`
+- Room database initializes on first run
+
+### Debug Mode
+
+Enable debug output by running with logging:
+```bash
+./gradlew :composeApp:run --info
+```
 
 ## 📝 Credits
 
@@ -244,17 +410,41 @@ The menu features a catchy chiptune melody:
 - Coroutines
 - Room Database
 
+## 📋 Recent Changes
+
+### Version 1.1.0 (Latest)
+- **Refactored animation system** - Centralized sprite loading with AnimationProvider
+- **Normalized asset filenames** - Renamed 72 sprite files for consistency (cat_idle_01.png, etc.)
+- **Fixed barrel spawning** - Corrected animation frame check for barrel generation
+- **Eliminated code duplication** - Removed redundant ImageLoader classes
+- **Improved resource management** - Async loading with Compose Multiplatform Resources
+
+### Version 1.0.0
+- Initial release with complete gameplay
+- Main menu, high scores, and credits screens
+- 8-bit synthesized audio system
+- Full Clean Architecture implementation
+
 ## 🤝 Contributing
 
 This is a personal learning project demonstrating:
-- Clean Architecture implementation in Kotlin
-- Compose Multiplatform game development
-- Audio synthesis and chiptune music composition
-- Retro game design patterns
+- **Clean Architecture** implementation in Kotlin
+- **Compose Multiplatform** game development
+- **Audio synthesis** and chiptune music composition
+- **Retro game design** patterns and mechanics
+- **Modular architecture** with dependency injection (Koin)
+- **Asynchronous resource loading** with Kotlin Coroutines
+
+Feel free to fork and experiment with the code!
+
+## 📄 License
+
+This project is open source and available under the MIT License.
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.0
+**Last Updated**: January 2026
 
 Developed with ❤️ using Kotlin and Compose Multiplatform
 
