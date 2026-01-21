@@ -16,6 +16,7 @@ import dev.pgm.game.presentation.ui.MainMenuScreen
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
+    onExitApplication: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -34,7 +35,8 @@ fun NavigationGraph(
                 },
                 onNavigateToCredits = {
                     navController.navigate(Screen.Credits.route)
-                }
+                },
+                onExit = onExitApplication
             )
         }
 

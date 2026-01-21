@@ -27,8 +27,11 @@ fun MainMenuScreen(
     onNavigateToGame: () -> Unit,
     onNavigateToHighScores: () -> Unit,
     onNavigateToCredits: () -> Unit,
+    onExit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showExitConfirmation by remember { mutableStateOf(false) }
+
     Box(modifier = modifier.fillMaxSize()) {
         // Fondo oscuro
         Box(
@@ -72,6 +75,13 @@ fun MainMenuScreen(
                 text = "CREDITS",
                 onClick = onNavigateToCredits
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            MenuButton(
+                text = "EXIT",
+                onClick = { showExitConfirmation = true }
+            )
         }
 
         // Versión en la esquina
@@ -86,6 +96,41 @@ fun MainMenuScreen(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         )
+
+        // Diálogo de confirmación de salida
+        if (showExitConfirmation) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.85f))
+            ) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "ARE YOU SURE\nYOU WANT TO EXIT?",
+                        style = TextStyle(
+                            fontFamily = GameFonts.GameFont,
+                            fontSize = 32.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(40.dp))
+                    MenuButton(
+                        text = "YES, EXIT",
+                        onClick = onExit
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    MenuButton(
+                        text = "NO, STAY",
+                        onClick = { showExitConfirmation = false }
+                    )
+                }
+            }
+        }
     }
 }
 
