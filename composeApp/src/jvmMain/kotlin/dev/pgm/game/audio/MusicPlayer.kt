@@ -64,86 +64,89 @@ object MusicPlayer {
 
     /**
      * Genera una melodía tranquila para el menú principal.
-     * Usa una progresión armónica suave con tempo lento.
+     * Usa una progresión armónica suave con tempo moderado.
      */
     private fun generateMenuMelody(): ByteArray {
-        // Tempo: 75 BPM (más lento), cada nota negra = 800ms
-        val eighthNote = 400  // Corchea
-        val quarterNote = 800 // Negra
-        val halfNote = 1600   // Blanca
-        val wholeNote = 3200  // Redonda
+        // Tempo: 80 BPM, cada nota negra = 750ms
+        val eighthNote = 375  // Corchea
+        val quarterNote = 750 // Negra
+        val halfNote = 1500   // Blanca
+        val dottedHalf = 2250 // Blanca con puntillo
 
-        // Melodía principal - progresión más armoniosa y espaciada
+        // Melodía principal - progresión más dinámica
         val melody = listOf(
             // Frase 1 - Introducción tranquila (I - V - vi - IV)
-            Note(523.0, halfNote),      // C5
-            Note(0.0, quarterNote),     // Silencio
-            Note(659.0, halfNote),      // E5
-            Note(0.0, quarterNote),     // Silencio
-            Note(587.0, halfNote),      // D5
             Note(523.0, quarterNote),   // C5
-            Note(392.0, wholeNote),     // G4 - resolución larga
-
-            // Frase 2 - Desarrollo (vi - IV - I - V)
-            Note(440.0, halfNote),      // A4
-            Note(0.0, quarterNote),     // Silencio
-            Note(523.0, halfNote),      // C5
+            Note(659.0, quarterNote),   // E5
             Note(587.0, quarterNote),   // D5
-            Note(523.0, halfNote),      // C5
-            Note(0.0, quarterNote),     // Silencio
-            Note(392.0, wholeNote),     // G4
-
-            // Frase 3 - Clímax suave (I - iii - IV - V)
-            Note(523.0, quarterNote),   // C5
-            Note(587.0, quarterNote),   // D5
-            Note(659.0, halfNote),      // E5
-            Note(0.0, quarterNote),     // Silencio
-            Note(587.0, halfNote),      // D5
-            Note(523.0, quarterNote),   // C5
-            Note(440.0, wholeNote),     // A4
-
-            // Frase 4 - Resolución final (IV - V - I)
-            Note(523.0, quarterNote),   // C5
-            Note(440.0, quarterNote),   // A4
+            Note(523.0, eighthNote),    // C5
             Note(392.0, halfNote),      // G4
             Note(0.0, quarterNote),     // Silencio
-            Note(330.0, halfNote),      // E4
-            Note(262.0, wholeNote),     // C4 - cierre en tónica
+
+            // Frase 2 - Desarrollo (vi - IV - I - V)
+            Note(440.0, quarterNote),   // A4
+            Note(523.0, quarterNote),   // C5
+            Note(587.0, eighthNote),    // D5
+            Note(523.0, eighthNote),    // C5
+            Note(392.0, halfNote),      // G4
+            Note(0.0, quarterNote),     // Silencio
+
+            // Frase 3 - Clímax suave (I - iii - IV - V)
+            Note(523.0, eighthNote),    // C5
+            Note(587.0, eighthNote),    // D5
+            Note(659.0, quarterNote),   // E5
+            Note(587.0, quarterNote),   // D5
+            Note(523.0, eighthNote),    // C5
+            Note(440.0, halfNote),      // A4
+            Note(0.0, quarterNote),     // Silencio
+
+            // Frase 4 - Resolución final (IV - V - I)
+            Note(523.0, eighthNote),    // C5
+            Note(440.0, eighthNote),    // A4
+            Note(392.0, quarterNote),   // G4
+            Note(330.0, quarterNote),   // E4
+            Note(262.0, dottedHalf),    // C4 - cierre en tónica
+            Note(0.0, quarterNote),     // Silencio final
         )
 
-        // Bajo acompañamiento - fundamental de cada acorde, muy suave
+        // Bajo acompañamiento - fundamental de cada acorde, más corto
         val bass = listOf(
             // Acorde C (I)
-            Note(262.0, wholeNote),     // C4
-            Note(0.0, quarterNote),
-            // Acorde G (V)
-            Note(196.0, wholeNote),     // G3
-            Note(0.0, quarterNote),
-            // Acorde Am (vi)
-            Note(220.0, wholeNote),     // A3
-
-            // Acorde F (IV)
-            Note(175.0, wholeNote),     // F3
-            Note(0.0, quarterNote),
-            // Acorde C (I)
-            Note(262.0, wholeNote),     // C4
-            Note(0.0, quarterNote),
-            // Acorde G (V)
-            Note(196.0, wholeNote),     // G3
-
-            // Acorde C (I)
-            Note(262.0, wholeNote),     // C4
-            Note(0.0, quarterNote),
-            // Acorde Em (iii)
-            Note(165.0, wholeNote),     // E3
-            Note(220.0, wholeNote),     // A3
-
-            // Acorde F (IV)
-            Note(175.0, wholeNote),     // F3
+            Note(262.0, halfNote),      // C4
+            Note(0.0, eighthNote),
             // Acorde G (V)
             Note(196.0, halfNote),      // G3
+            Note(0.0, eighthNote),
+            // Acorde Am (vi)
+            Note(220.0, halfNote),      // A3
+            Note(0.0, quarterNote),
+
+            // Acorde F (IV)
+            Note(175.0, halfNote),      // F3
+            Note(0.0, eighthNote),
+            // Acorde C (I)
+            Note(262.0, halfNote),      // C4
+            Note(0.0, eighthNote),
+            // Acorde G (V)
+            Note(196.0, halfNote),      // G3
+            Note(0.0, quarterNote),
+
+            // Acorde C (I)
+            Note(262.0, halfNote),      // C4
+            Note(0.0, eighthNote),
+            // Acorde Em (iii)
+            Note(165.0, quarterNote),   // E3
+            Note(0.0, eighthNote),
+            Note(220.0, halfNote),      // A3
+            Note(0.0, quarterNote),
+
+            // Acorde F (IV)
+            Note(175.0, halfNote),      // F3
+            // Acorde G (V)
+            Note(196.0, quarterNote),   // G3
             // Acorde C (I) - final
-            Note(262.0, wholeNote),     // C4
+            Note(262.0, dottedHalf),    // C4
+            Note(0.0, quarterNote),
         )
 
         // Mezclar melodía y bajo con volúmenes mucho más bajos
