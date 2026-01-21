@@ -4,6 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.pgm.game.domain.usecase.*
 import dev.pgm.game.input.GameInput
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
@@ -12,13 +17,17 @@ import dev.pgm.game.model.entities.BossAnimation
 import dev.pgm.game.model.entities.PlayerState
 import dev.pgm.game.model.entities.BossState
 import dev.pgm.game.core.utils.GameRect
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * ViewModel completo del juego con Clean Architecture + Koin.
- * Orquesta todos los UseCases y gestiona el estado del juego.
+ * Represents a one-time UI event from the ViewModel to the View.
+ */
+sealed class GameUiEvent {
+    data class ShowHighScoreDialog(val score: Int) : GameUiEvent()
+}
+
+/**
+ * Full game ViewModel with Clean Architecture + Koin.
+ * Orchestrates all UseCases and manages game state.
  */
 class GameViewModelComplete(
     private val updatePlayerUseCase: UpdatePlayerUseCase,
@@ -37,15 +46,15 @@ class GameViewModelComplete(
 
     private var animationTimer = 0f
 
-    // High Score Dialog State
-    private val _showHighScoreDialog = MutableStateFlow(false)
-    val showHighScoreDialog: StateFlow<Boolean> = _showHighScoreDialog.asStateFlow()
+    // One-time UI events
+    private val _uiEvent = Channel<GameUiEvent>(Channel.BUFFERED)
+    val uiEvent = _uiEvent.receiveAsFlow()
 
-    private val _pendingScore = MutableStateFlow(0)
+    private var _pendingScore: Int = 0
 
     /**
-     * Actualiza el estado del juego cada frame.
-     * Orquesta todos los UseCases en el orden correcto.
+     * Updates the game state every frame.
+     * Orchestrates all UseCases in the correct order.
      */
     fun tick(deltaTime: Float, input: GameInput) {
         val currentState = _gameState.value
@@ -56,10 +65,10 @@ class GameViewModelComplete(
 
         var newState = currentState
 
-        // 1. Verificar y respawnear jugador si está muerto
+        // 1. Check and respawn player if dead
         newState = checkAndRespawnPlayer(newState)
 
-        // 2. Actualizar animación del jugador y del boss
+        // 2. Update player and boss animation
         animationTimer += deltaTime
         if (animationTimer > GameConstants.ANIMATION_FRAME_DURATION) {
             animationTimer = 0f
@@ -67,26 +76,26 @@ class GameViewModelComplete(
             newState = updateBossAnimation(newState)
         }
 
-        // 3. Actualizar jugador si no está muerto
+        // 3. Update player if not dead
         if (newState.player.state != PlayerState.DEAD) {
             newState = updatePlayerUseCase(newState, input, deltaTime)
 
-            // 4. Actualizar barriles
+            // 4. Update barrels
             newState = updateBarrelsUseCase(newState)
 
-            // 5. Spawner barriles
+            // 5. Spawn barrels
             newState = spawnBarrelUseCase(newState, System.currentTimeMillis())
 
-            // 6. Actualizar partículas
+            // 6. Update particles
             newState = updateParticlesUseCase(newState, deltaTime)
 
-            // 7. Verificar colisiones
+            // 7. Check collisions
             newState = checkCollisionsUseCase(newState)
 
-            // 8. Actualizar condición de victoria
+            // 8. Update win condition
             newState = checkWinCondition(newState)
 
-            // 9. Limpiar popups antiguos
+            // 9. Clean up old popups
             newState = cleanupPopups(newState)
         }
 
@@ -103,6 +112,9 @@ class GameViewModelComplete(
         spawnBarrelUseCase.reset()
         animationTimer = 0f
         _gameState.value = GameState.initial(currentSize).copy(highScore = currentHighScore)
+        
+        // Reset pending score
+        _pendingScore = 0
     }
 
     fun setScreenSize(width: Int, height: Int) {
@@ -116,19 +128,19 @@ class GameViewModelComplete(
     private fun updatePlayerAnimation(state: GameState, input: GameInput): GameState {
         val player = state.player
 
-        // Si está escalando pero no presiona arriba/abajo, pausar la animación
+        // If climbing but not pressing up/down, pause animation
         val isClimbingButStationary = player.state == PlayerState.CLIMBING &&
                 !input.up && !input.down
 
         if (isClimbingButStationary) {
-            return state // No actualizar el frame, mantener la animación pausada
+            return state // Do not update frame, keep animation paused
         }
 
         val animation = CatAnimation.animations[player.state]
             ?: CatAnimation.animations[PlayerState.IDLE]!!
 
         if (animation.isEmpty()) {
-            return state // Evitar división por cero
+            return state // Avoid division by zero
         }
 
         val nextFrame = (player.animationFrame + 1) % animation.size
@@ -148,7 +160,7 @@ class GameViewModelComplete(
 
         val nextFrame = (boss.animationFrame + 1) % animation.size
 
-        // Si está en estado THROWING y completó la animación, volver a IDLE
+        // If in THROWING state and animation completed, return to IDLE
         val newState = if (boss.state == BossState.THROWING && nextFrame == 0) {
             BossState.IDLE
         } else {
@@ -169,14 +181,14 @@ class GameViewModelComplete(
         val timeSinceDeath = System.currentTimeMillis() - state.playerDeathTimestamp
         if (timeSinceDeath < 1500) return state // 1.5s death animation
 
-        // Respawnear jugador
+        // Respawn player
         val platforms = state.platforms
         if (platforms.isEmpty()) return state
 
         val startPlatform = platforms[0]
         val playerY = startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE
 
-        // Reiniciar el flujo de barriles
+        // Reset barrel flow
         spawnBarrelUseCase.reset()
 
         return state.copy(
@@ -233,8 +245,8 @@ class GameViewModelComplete(
     }
 
     /**
-     * Verifica si el score actual califica para el top 40.
-     * Muestra el diálogo de high score si califica.
+     * Checks if the current score qualifies for the top 40.
+     * Emits a UI event to show the high score dialog if it qualifies.
      */
     fun checkIfHighScore() {
         viewModelScope.launch {
@@ -242,32 +254,32 @@ class GameViewModelComplete(
             if (currentScore > 0) {
                 val isHigh = checkHighScoreUseCase(currentScore)
                 if (isHigh) {
-                    _pendingScore.value = currentScore
-                    _showHighScoreDialog.value = true
+                    _pendingScore = currentScore
+                    _uiEvent.send(GameUiEvent.ShowHighScoreDialog(currentScore))
                 }
             }
         }
     }
 
     /**
-     * Guarda el high score con el nombre del jugador.
-     * @param playerName Nombre del jugador
-     * @param onComplete Callback ejecutado después de guardar
+     * Saves the high score with the player's name.
+     * @param playerName Player's name.
+     * @param onComplete Callback executed after saving.
      */
     fun saveHighScore(playerName: String, onComplete: () -> Unit) {
         viewModelScope.launch {
-            saveHighScoreUseCase(playerName, _pendingScore.value)
-            _showHighScoreDialog.value = false
+            saveHighScoreUseCase(playerName, _pendingScore)
+            _pendingScore = 0 // Reset pending score
             onComplete()
         }
     }
 
     /**
-     * Cierra el diálogo de high score sin guardar.
-     * @param onComplete Callback ejecutado después de cerrar
+     * Closes the high score dialog without saving.
+     * @param onComplete Callback executed after closing.
      */
     fun dismissHighScoreDialog(onComplete: () -> Unit) {
-        _showHighScoreDialog.value = false
+        _pendingScore = 0 // Reset pending score
         onComplete()
     }
 }

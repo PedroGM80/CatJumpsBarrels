@@ -142,6 +142,10 @@ class GameViewModelComplete(
         spawnBarrelUseCase.reset()
         animationTimer = 0f
         _gameState.value = GameState.initial(currentSize).copy(highScore = currentHighScore)
+        
+        // Reset high score dialog state
+        _showHighScoreDialog.value = false
+        _pendingScore.value = 0
     }
 
     fun setScreenSize(width: Int, height: Int) {
@@ -150,6 +154,22 @@ class GameViewModelComplete(
             val currentHighScore = _gameState.value.highScore
             _gameState.value = GameState.initial(size).copy(highScore = currentHighScore)
         }
+    }
+
+    /**
+     * Resets the game state for a new game session.
+     * Should be called when entering the GameScreen.
+     */
+    fun resetForNewGame() {
+        val currentSize = _gameState.value.screenSize
+        val currentHighScore = _gameState.value.highScore
+        spawnBarrelUseCase.reset()
+        animationTimer = 0f
+        previousPlayerState = PlayerState.IDLE
+        previousScore = 0
+        _gameState.value = GameState.initial(currentSize).copy(highScore = currentHighScore)
+        _showHighScoreDialog.value = false
+        _pendingScore.value = 0
     }
 
     /**

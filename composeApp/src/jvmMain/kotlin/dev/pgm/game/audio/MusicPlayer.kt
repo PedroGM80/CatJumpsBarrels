@@ -1,51 +1,106 @@
 package dev.pgm.game.audio
 
+import dev.pgm.game.data.preferences.GamePreferences
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.sound.sampled.*
 import kotlin.math.PI
 import kotlin.math.sin
 
-/**
- * Reproductor de música de fondo estilo 8-bit.
- * Compone melodías usando síntesis de ondas cuadradas.
- */
 object MusicPlayer {
 
-    private const val SAMPLE_RATE = 44100f
-    private val audioFormat = AudioFormat(SAMPLE_RATE, 8, 1, true, false)
+    // =========================================================
+    // AUDIO CONFIG
+    // =========================================================
 
-    private var musicThread: Thread? = null
-    @Volatile private var isPlaying = false
-    @Volatile private var musicEnabled = true
+    private const val SAMPLE_RATE = 44100
+    private const val CHANNELS = 1
+    private const val BIT_DEPTH = 16
+    private const val BYTES_PER_SAMPLE = BIT_DEPTH / 8
 
-    fun setMusicEnabled(enabled: Boolean) {
-        musicEnabled = enabled
-        if (!enabled) {
-            stopMusic()
-        }
-    }
+    private const val SIGNED = true
+    private const val BIG_ENDIAN = false
 
-    /**
-     * Inicia la música del menú principal en loop
-     */
+    // =========================================================
+    // ENVELOPE
+    // =========================================================
+
+    private const val ATTACK_TIME_SEC = 0.05
+    private const val RELEASE_TIME_SEC = 0.10
+
+    // =========================================================
+    // VOLUME
+    // =========================================================
+
+    private const val BASE_VOLUME_MAIN = 8000
+    private const val BASE_VOLUME_BASS = 5000
+
+    // =========================================================
+    // TEMPO (120 BPM)
+    // =========================================================
+
+    private const val SIXTEENTH = 125
+    private const val EIGHTH = 250
+    private const val QUARTER = 500
+    private const val HALF = 1000
+
+    // =========================================================
+    // NOTES (Hz)
+    // =========================================================
+
+    private const val SILENCE = 0.0
+
+    private const val G3 = 196.0
+    private const val A3 = 220.0
+    private const val C4 = 262.0
+    private const val F3 = 175.0
+
+    private const val C5 = 523.0
+    private const val D5 = 587.0
+    private const val E5 = 659.0
+    private const val F5 = 698.0
+    private const val G5 = 784.0
+    private const val A5 = 880.0
+    private const val C6 = 1047.0
+
+    // =========================================================
+    // STATE
+    // =========================================================
+
+    private val playing = AtomicBoolean(false)
+    private var thread: Thread? = null
+
+    private val FORMAT = AudioFormat(
+        SAMPLE_RATE.toFloat(),
+        BIT_DEPTH,
+        CHANNELS,
+        SIGNED,
+        BIG_ENDIAN
+    )
+
+    private val songBuffer: ByteArray by lazy { generateMenuSong() }
+
+    // =========================================================
+    // PUBLIC API
+    // =========================================================
+
     fun playMenuMusic() {
-        if (!musicEnabled || isPlaying) return
+        if (!GamePreferences.musicEnabled || playing.get()) return
 
-        isPlaying = true
-        musicThread = Thread {
+        playing.set(true)
+
+        thread = Thread {
+            val line = AudioSystem.getSourceDataLine(FORMAT)
+            line.open(FORMAT)
+            line.start()
+
             try {
-                val line = AudioSystem.getSourceDataLine(audioFormat)
-                line.open(audioFormat)
-                line.start()
-
-                while (isPlaying && musicEnabled) {
-                    val melody = generateMenuMelody()
-                    line.write(melody, 0, melody.size)
+                while (playing.get() && GamePreferences.musicEnabled) {
+                    line.write(songBuffer, 0, songBuffer.size)
                 }
-
+            } finally {
                 line.drain()
                 line.close()
-            } catch (e: Exception) {
-                // Audio not available
+                playing.set(false)
             }
         }.apply {
             isDaemon = true
@@ -53,177 +108,115 @@ object MusicPlayer {
         }
     }
 
-    /**
-     * Detiene la música
-     */
     fun stopMusic() {
-        isPlaying = false
-        musicThread?.interrupt()
-        musicThread = null
+        playing.set(false)
     }
 
-    /**
-     * Genera una melodía pegadiza estilo 8-bit NES para el menú principal.
-     * Inspirada en clásicos como Super Mario Bros y Zelda.
-     */
-    private fun generateMenuMelody(): ByteArray {
-        // Tempo: 120 BPM (más alegre), cada nota negra = 500ms
-        val sixteenthNote = 125  // Semicorchea
-        val eighthNote = 250     // Corchea
-        val quarterNote = 500    // Negra
-        val halfNote = 1000      // Blanca
+    // =========================================================
+    // SONG GENERATION
+    // =========================================================
 
-        // Melodía principal - patrón pegadizo estilo NES con arpegios
-        val melody = listOf(
-            // Motivo principal A - patrón alegre y saltarín
-            Note(523.0, eighthNote),    // C5
-            Note(659.0, eighthNote),    // E5
-            Note(784.0, eighthNote),    // G5
-            Note(659.0, eighthNote),    // E5
-            Note(523.0, eighthNote),    // C5
-            Note(659.0, eighthNote),    // E5
-            Note(784.0, quarterNote),   // G5
-            Note(0.0, eighthNote),      // Silencio
+    private fun generateMenuSong(): ByteArray {
+        val volumeFactor = GamePreferences.getNormalizedMusicVolume()
 
-            // Repetición del motivo con variación
-            Note(523.0, eighthNote),    // C5
-            Note(659.0, eighthNote),    // E5
-            Note(784.0, eighthNote),    // G5
-            Note(880.0, eighthNote),    // A5
-            Note(784.0, eighthNote),    // G5
-            Note(659.0, eighthNote),    // E5
-            Note(523.0, quarterNote),   // C5
-            Note(0.0, eighthNote),      // Silencio
+        val volumeMain = (BASE_VOLUME_MAIN * volumeFactor).toInt()
+        val volumeBass = (BASE_VOLUME_BASS * volumeFactor).toInt()
 
-            // Motivo B - respuesta melódica
-            Note(587.0, eighthNote),    // D5
-            Note(659.0, eighthNote),    // E5
-            Note(698.0, eighthNote),    // F5
-            Note(784.0, eighthNote),    // G5
-            Note(659.0, eighthNote),    // E5
-            Note(587.0, eighthNote),    // D5
-            Note(523.0, quarterNote),   // C5
-            Note(0.0, eighthNote),      // Silencio
+        val melody = melodyNotes()
+        val bass = bassNotes()
 
-            // Cierre con salto octava (estilo Super Mario)
-            Note(392.0, eighthNote),    // G4
-            Note(523.0, eighthNote),    // C5
-            Note(659.0, eighthNote),    // E5
-            Note(784.0, eighthNote),    // G5
-            Note(1047.0, eighthNote),   // C6 - salto de octava
-            Note(784.0, eighthNote),    // G5
-            Note(523.0, halfNote),      // C5 - resolución
-            Note(0.0, quarterNote),     // Silencio
-        )
+        val totalSamples = melody.sumOf { samplesFor(it.durationMs) }
+        val buffer = ByteArray(totalSamples * BYTES_PER_SAMPLE)
 
-        // Bajo estilo NES - patrón de walking bass con ritmo marcado
-        val bass = listOf(
-            // Patrón I - V (típico de 8-bit)
-            Note(262.0, eighthNote),    // C4
-            Note(0.0, sixteenthNote),
-            Note(262.0, sixteenthNote), // C4
-            Note(196.0, eighthNote),    // G3
-            Note(0.0, sixteenthNote),
-            Note(196.0, sixteenthNote), // G3
-            Note(262.0, eighthNote),    // C4
-            Note(0.0, eighthNote),
+        var offset = 0
+        melody.zip(bass) { m, b ->
+            val samples = samplesFor(m.durationMs)
 
-            Note(262.0, eighthNote),    // C4
-            Note(0.0, sixteenthNote),
-            Note(262.0, sixteenthNote), // C4
-            Note(196.0, eighthNote),    // G3
-            Note(220.0, eighthNote),    // A3
-            Note(262.0, quarterNote),   // C4
-            Note(0.0, eighthNote),
+            mixNote(buffer, offset, samples, m.frequency, volumeMain)
+            mixNote(buffer, offset, samples, b.frequency, volumeBass)
 
-            // Patrón IV - V - I
-            Note(175.0, eighthNote),    // F3
-            Note(0.0, sixteenthNote),
-            Note(175.0, sixteenthNote), // F3
-            Note(196.0, eighthNote),    // G3
-            Note(0.0, sixteenthNote),
-            Note(196.0, sixteenthNote), // G3
-            Note(262.0, quarterNote),   // C4
-            Note(0.0, eighthNote),
-
-            // Cierre con patrón de tónica
-            Note(196.0, eighthNote),    // G3
-            Note(262.0, eighthNote),    // C4
-            Note(196.0, eighthNote),    // G3
-            Note(262.0, eighthNote),    // C4
-            Note(262.0, eighthNote),    // C4
-            Note(0.0, sixteenthNote),
-            Note(262.0, sixteenthNote), // C4
-            Note(262.0, halfNote),      // C4 - final
-            Note(0.0, quarterNote),
-        )
-
-        // Mezclar melodía y bajo con volúmenes muy bajos para fondo sutil
-        return mixTracks(
-            generateTrack(melody, volume = 4),   // Melodía muy bajita
-            generateTrack(bass, volume = 2)      // Bajo casi imperceptible
-        )
-    }
-
-    private fun generateTrack(notes: List<Note>, volume: Int): ByteArray {
-        val allSamples = mutableListOf<Byte>()
-
-        for (note in notes) {
-            val samples = generateNote(note.frequency, note.durationMs, volume)
-            allSamples.addAll(samples.toList())
+            offset += samples * BYTES_PER_SAMPLE
         }
 
-        return allSamples.toByteArray()
+        return buffer
     }
 
-    private fun generateNote(frequency: Double, durationMs: Int, volume: Int): ByteArray {
-        val numSamples = (SAMPLE_RATE * durationMs / 1000).toInt()
-        val samples = ByteArray(numSamples)
+    private fun mixNote(
+        buffer: ByteArray,
+        offset: Int,
+        samples: Int,
+        frequency: Double,
+        volume: Int
+    ) {
+        if (frequency == SILENCE) return
 
-        // Si la frecuencia es 0, generar silencio
-        if (frequency == 0.0) {
-            return samples // Array de ceros = silencio
-        }
+        val attackSamples = (SAMPLE_RATE * ATTACK_TIME_SEC).toInt()
+        val releaseSamples = (SAMPLE_RATE * RELEASE_TIME_SEC).toInt()
 
-        for (i in 0 until numSamples) {
-            val time = i / SAMPLE_RATE
-            // Onda cuadrada
-            val value = if (sin(2.0 * PI * frequency * time) >= 0) 1.0 else -1.0
-
-            // Envelope ADSR más suave para música de fondo
-            val attackTime = 0.08  // 80ms - ataque más suave
-            val releaseTime = 0.15  // 150ms - release más largo
-            val timeInSeconds = i / SAMPLE_RATE
-            val durationSeconds = durationMs / 1000.0
+        for (i in 0 until samples) {
+            val time = i.toDouble() / SAMPLE_RATE
+            val wave = if (sin(2.0 * PI * frequency * time) >= 0) 1.0 else -1.0
 
             val envelope = when {
-                timeInSeconds < attackTime -> timeInSeconds / attackTime
-                timeInSeconds > durationSeconds - releaseTime ->
-                    (durationSeconds - timeInSeconds) / releaseTime
+                i < attackSamples ->
+                    i.toDouble() / attackSamples
+
+                i > samples - releaseSamples ->
+                    (samples - i).toDouble() / releaseSamples
+
                 else -> 1.0
             }
 
-            samples[i] = (value * volume * envelope).toInt().toByte()
-        }
+            val sample = (wave * volume * envelope).toInt()
+            val index = offset + i * BYTES_PER_SAMPLE
 
-        return samples
+            val current =
+                (buffer[index + 1].toInt() shl 8) or
+                        (buffer[index].toInt() and 0xFF)
+
+            val mixed = (current + sample)
+                .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
+
+            buffer[index] = (mixed and 0xFF).toByte()
+            buffer[index + 1] = (mixed shr 8).toByte()
+        }
     }
 
-    private fun mixTracks(track1: ByteArray, track2: ByteArray): ByteArray {
-        val maxLength = maxOf(track1.size, track2.size)
-        val mixed = ByteArray(maxLength)
+    private fun samplesFor(durationMs: Int): Int =
+        SAMPLE_RATE * durationMs / 1000
 
-        for (i in 0 until maxLength) {
-            val sample1 = if (i < track1.size) track1[i].toInt() else 0
-            val sample2 = if (i < track2.size) track2[i].toInt() else 0
+    // =========================================================
+    // MELODY DEFINITIONS (SIN NÚMEROS MÁGICOS)
+    // =========================================================
 
-            // Mezclar y limitar para evitar clipping
-            val mixedSample = (sample1 + sample2) / 2
-            mixed[i] = mixedSample.coerceIn(-127, 127).toByte()
-        }
+    private fun melodyNotes() = listOf(
+        Note(C5, EIGHTH), Note(E5, EIGHTH), Note(G5, EIGHTH), Note(E5, EIGHTH),
+        Note(C5, EIGHTH), Note(E5, EIGHTH), Note(G5, QUARTER), Note(SILENCE, EIGHTH),
 
-        return mixed
-    }
+        Note(C5, EIGHTH), Note(E5, EIGHTH), Note(G5, EIGHTH), Note(A5, EIGHTH),
+        Note(G5, EIGHTH), Note(E5, EIGHTH), Note(C5, QUARTER), Note(SILENCE, EIGHTH),
+
+        Note(G3, EIGHTH), Note(C5, EIGHTH), Note(E5, EIGHTH), Note(G5, EIGHTH),
+        Note(C6, EIGHTH), Note(G5, EIGHTH), Note(C5, HALF), Note(SILENCE, QUARTER)
+    )
+
+    private fun bassNotes() = listOf(
+        Note(C4, EIGHTH), Note(SILENCE, SIXTEENTH), Note(C4, SIXTEENTH),
+        Note(G3, EIGHTH), Note(SILENCE, SIXTEENTH), Note(G3, SIXTEENTH),
+        Note(C4, EIGHTH), Note(SILENCE, EIGHTH),
+
+        Note(F3, EIGHTH), Note(SILENCE, SIXTEENTH), Note(F3, SIXTEENTH),
+        Note(G3, EIGHTH), Note(A3, EIGHTH),
+        Note(C4, QUARTER), Note(SILENCE, EIGHTH),
+
+        Note(G3, EIGHTH), Note(C4, EIGHTH), Note(G3, EIGHTH), Note(C4, EIGHTH),
+        Note(C4, EIGHTH), Note(SILENCE, SIXTEENTH), Note(C4, SIXTEENTH),
+        Note(C4, HALF), Note(SILENCE, QUARTER)
+    )
+
+    // =========================================================
+    // DATA
+    // =========================================================
 
     private data class Note(
         val frequency: Double,

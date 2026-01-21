@@ -48,8 +48,9 @@ fun GameScreen(
     val inputHandler = remember { InputHandler() }
     val focusRequester = remember { FocusRequester() }
 
-    // Request focus when the screen is first composed
+    // Reset game state and request focus when the screen is first composed
     LaunchedEffect(Unit) {
+        viewModel.resetForNewGame()
         focusRequester.requestFocus()
     }
 

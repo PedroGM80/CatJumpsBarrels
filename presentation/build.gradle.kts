@@ -13,7 +13,6 @@ kotlin {
             implementation(project(":model"))
             implementation(project(":domain"))
             implementation(project(":input"))
-            implementation(project(":data"))
 
             // Compose completo
             implementation(compose.runtime)
