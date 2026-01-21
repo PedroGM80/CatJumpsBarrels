@@ -23,13 +23,13 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import catjumpsbarrels.composeapp.generated.resources.*
-import dev.pgm.game.data.resources.ImageLoader
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
 import dev.pgm.game.presentation.theme.GameFonts
+import dev.pgm.game.resources.AnimationProvider
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
@@ -48,6 +48,11 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
     val barrelFishPainter = painterResource(Res.drawable.barrel_fish)
     val platformPainter = painterResource(Res.drawable.platform)
     val ironTexturePainter = painterResource(Res.drawable.iron_texture)
+
+    // Get animations from provider
+    val catAnimations = if (AnimationProvider.isLoaded()) AnimationProvider.getCatAnimations() else emptyMap()
+    val bossAnimations = if (AnimationProvider.isLoaded()) AnimationProvider.getBossAnimations() else emptyMap()
+    val barrelEmptyBitmap = if (AnimationProvider.isLoaded()) AnimationProvider.getBarrelEmptyBitmap() else null
 
     Box(modifier = modifier) {
         Image(
@@ -82,10 +87,10 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
             }) {
                 state.platforms.forEach { drawPlatform(it, platformPainter) }
                 state.ladders.forEach { drawLadder(it, ironTexturePainter) }
-                drawDonkeyKong(state.enemy)
+                drawDonkeyKong(state.enemy, bossAnimations, barrelEmptyBitmap)
                 drawPrincess(state.winObjetive, barrelFishPainter)
                 state.barrels.forEach { drawBarrel(it) }
-                drawPlayer(state.player)
+                drawPlayer(state.player, catAnimations)
                 state.particles.forEach { drawParticle(it) }
                 state.lastScorePopup?.let { drawScorePopup(it) }
             }
@@ -178,8 +183,11 @@ private fun BoxScope.PauseScreen() {
     }
 }
 
-private fun DrawScope.drawPlayer(player: Player) {
-    val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
+private fun DrawScope.drawPlayer(
+    player: Player,
+    catAnimations: Map<PlayerState, List<ImageBitmap>>
+) {
+    val animation = catAnimations[player.state] ?: catAnimations[PlayerState.IDLE] ?: return
     if (animation.isEmpty()) return
 
     val frameIndex = player.animationFrame % animation.size
@@ -201,14 +209,18 @@ private fun DrawScope.drawPlayer(player: Player) {
     }
 }
 
-private fun DrawScope.drawDonkeyKong(dk: Boss) {
-    val animation = BossAnimation.animations[dk.state] ?: BossAnimation.animations[BossState.IDLE]!!
+private fun DrawScope.drawDonkeyKong(
+    dk: Boss,
+    bossAnimations: Map<BossState, List<ImageBitmap>>,
+    barrelEmptyBitmap: ImageBitmap?
+) {
+    val animation = bossAnimations[dk.state] ?: bossAnimations[BossState.IDLE] ?: return
     if (animation.isEmpty()) return
 
     val frameIndex = dk.animationFrame % animation.size
     val image = animation[frameIndex]
 
-    drawBarrelStackBehindBoss(dk)
+    barrelEmptyBitmap?.let { drawBarrelStackBehindBoss(dk, it) }
 
     withTransform({
         translate(left = dk.position.x, top = dk.position.y)
@@ -220,17 +232,7 @@ private fun DrawScope.drawDonkeyKong(dk: Boss) {
     }
 }
 
-private val barrelStackImage: ImageBitmap? by lazy {
-    try {
-        ImageLoader.loadResourceImage("drawable/barrel_empty.png")
-    } catch (e: Exception) {
-        null
-    }
-}
-
-private fun DrawScope.drawBarrelStackBehindBoss(dk: Boss) {
-    val barrelImage = barrelStackImage ?: return
-
+private fun DrawScope.drawBarrelStackBehindBoss(dk: Boss, barrelImage: ImageBitmap) {
     val barrelSize = 25f
     val barrelSpacing = 28f
     val verticalSpacing = 12f
@@ -295,9 +297,7 @@ private fun DrawScope.drawPlatform(platform: Platform, painter: Painter) {
         rotate(degrees = angleDeg, pivot = Offset(0f, 0f))
     }) {
         with(painter) {
-            draw(
-                size = Size(platform.width, platform.height)
-            )
+            draw(size = Size(platform.width, platform.height))
         }
     }
 }

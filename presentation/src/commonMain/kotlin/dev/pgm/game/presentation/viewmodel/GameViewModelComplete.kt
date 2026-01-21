@@ -6,8 +6,6 @@ import dev.pgm.game.domain.usecase.*
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
-import dev.pgm.game.model.entities.CatAnimation
-import dev.pgm.game.model.entities.BossAnimation
 import dev.pgm.game.model.entities.PlayerState
 import dev.pgm.game.model.entities.BossState
 import dev.pgm.game.core.utils.GameRect
@@ -15,6 +13,27 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+/**
+ * Constantes de animación (número de frames por estado).
+ * Estos valores corresponden a los sprites cargados por AnimationProvider.
+ */
+private object AnimationFrameCounts {
+    val catFrames = mapOf(
+        PlayerState.IDLE to 10,
+        PlayerState.RUNNING to 8,
+        PlayerState.JUMPING to 8,
+        PlayerState.FALLING to 8,
+        PlayerState.CLIMBING to 6,
+        PlayerState.DEAD to 10,
+        PlayerState.HURT to 10
+    )
+    
+    val bossFrames = mapOf(
+        BossState.IDLE to 3,
+        BossState.THROWING to 3
+    )
+}
 
 /**
  * ViewModel completo del juego con Clean Architecture + Koin.
@@ -225,14 +244,15 @@ class GameViewModelComplete(
             return state
         }
 
-        val animation = CatAnimation.animations[player.state]
-            ?: CatAnimation.animations[PlayerState.IDLE]!!
+        val frameCount = AnimationFrameCounts.catFrames[player.state] 
+            ?: AnimationFrameCounts.catFrames[PlayerState.IDLE] 
+            ?: 1
 
-        if (animation.isEmpty()) {
+        if (frameCount <= 0) {
             return state
         }
 
-        val nextFrame = (player.animationFrame + 1) % animation.size
+        val nextFrame = (player.animationFrame + 1) % frameCount
 
         return state.copy(
             player = player.copy(animationFrame = nextFrame)
@@ -241,13 +261,15 @@ class GameViewModelComplete(
 
     private fun updateBossAnimation(state: GameState): GameState {
         val boss = state.enemy
-        val animation = BossAnimation.animations[boss.state] ?: BossAnimation.animations[BossState.IDLE]!!
+        val frameCount = AnimationFrameCounts.bossFrames[boss.state] 
+            ?: AnimationFrameCounts.bossFrames[BossState.IDLE] 
+            ?: 1
 
-        if (animation.isEmpty()) {
+        if (frameCount <= 0) {
             return state
         }
 
-        val nextFrame = (boss.animationFrame + 1) % animation.size
+        val nextFrame = (boss.animationFrame + 1) % frameCount
 
         val newState = if (boss.state == BossState.THROWING && nextFrame == 0) {
             BossState.IDLE
