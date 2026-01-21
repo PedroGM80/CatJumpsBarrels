@@ -27,7 +27,9 @@ data class GameState(
 ) {
     companion object {
         fun initial(screenSize: IntSize): GameState {
-            val platforms = createPlatforms(screenSize.height.toFloat())
+            // Usar altura de diseño fija para posicionamiento consistente
+            val designHeight = GameConstants.LEVEL_HEIGHT
+            val platforms = createPlatforms(designHeight)
             val princessPlatform = createPrincessPlatform(platforms[5])
             val allPlatforms = platforms + princessPlatform
             val ladders = createLadders(allPlatforms, princessPlatform)
@@ -43,14 +45,14 @@ data class GameState(
             )
         }
 
-        private fun createPlatforms(screenHeight: Float): List<Platform> {
+        private fun createPlatforms(designHeight: Float): List<Platform> {
             return (0 until GameConstants.PLATFORM_COUNT).map { i ->
-                createPlatform(i, screenHeight)
+                createPlatform(i, designHeight)
             }
         }
 
-        private fun createPlatform(index: Int, screenHeight: Float): Platform {
-            val y = screenHeight - GameConstants.PLATFORM_BOTTOM_OFFSET - (index * GameConstants.PLATFORM_GAP)
+        private fun createPlatform(index: Int, designHeight: Float): Platform {
+            val y = designHeight - GameConstants.PLATFORM_BOTTOM_OFFSET - (index * GameConstants.PLATFORM_GAP)
             val isEvenIndex = index % 2 == 0
             // Plataforma 5 (del enemigo) es recta, las demas tienen pendiente
             val currentSlope = if (index == 5) 0f else if (isEvenIndex) GameConstants.PLATFORM_SLOPE else -GameConstants.PLATFORM_SLOPE

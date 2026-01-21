@@ -65,10 +65,25 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
         
         Canvas(modifier = Modifier.fillMaxSize()) {
             val screenWidth = size.width
+            val screenHeight = size.height
             val levelWidth = GameConstants.LEVEL_WIDTH
-            val offsetX = (screenWidth - levelWidth) / 2f
+            val levelHeight = GameConstants.LEVEL_HEIGHT
 
-            withTransform({ translate(left = offsetX, top = 0f) }) {
+            // Calcular factor de escala manteniendo proporción
+            val scaleX = screenWidth / levelWidth
+            val scaleY = screenHeight / levelHeight
+            val scale = minOf(scaleX, scaleY)
+
+            // Calcular offset para centrar el nivel escalado
+            val scaledWidth = levelWidth * scale
+            val scaledHeight = levelHeight * scale
+            val offsetX = (screenWidth - scaledWidth) / 2f
+            val offsetY = (screenHeight - scaledHeight) / 2f
+
+            withTransform({
+                translate(left = offsetX, top = offsetY)
+                scale(scaleX = scale, scaleY = scale, pivot = Offset.Zero)
+            }) {
                 state.platforms.forEach { drawPlatform(it, platformPainter) }
                 state.ladders.forEach { drawLadder(it, ironTexturePainter) }
                 drawDonkeyKong(state.enemy)

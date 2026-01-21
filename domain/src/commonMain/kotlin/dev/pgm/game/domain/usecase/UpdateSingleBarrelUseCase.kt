@@ -16,8 +16,8 @@ import kotlin.random.Random
 class UpdateSingleBarrelUseCase {
 
     operator fun invoke(barrel: Barrel, state: GameState): Barrel? {
-        // Eliminar barriles fuera de pantalla
-        if (barrel.position.y > state.screenSize.height + GameConstants.BARREL_SCREEN_CLEANUP_OFFSET) {
+        // Eliminar barriles fuera del área de juego (usando altura de diseño)
+        if (barrel.position.y > GameConstants.LEVEL_HEIGHT + GameConstants.BARREL_SCREEN_CLEANUP_OFFSET) {
             return null
         }
 

@@ -13,6 +13,9 @@ object GameConstants {
     /** Ancho del área de juego en píxeles */
     const val LEVEL_WIDTH = 600f
 
+    /** Altura de diseño del área de juego en píxeles */
+    const val LEVEL_HEIGHT = 700f
+
     /** Altura de cada plataforma (ajustado para la imagen de viga industrial) */
     const val PLATFORM_HEIGHT = 32f
 

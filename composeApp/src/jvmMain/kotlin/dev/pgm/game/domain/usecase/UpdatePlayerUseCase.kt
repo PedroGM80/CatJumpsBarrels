@@ -36,7 +36,7 @@ class UpdatePlayerUseCase(
         }
 
         // Detectar caída al vacío - solo por ABAJO (por debajo de la plataforma más baja)
-        val fellOffBottom = player.position.y > state.screenSize.height + 100f
+        val fellOffBottom = player.position.y > GameConstants.LEVEL_HEIGHT + 100f
 
         if (fellOffBottom) {
             println("[GAME EVENT] Jugador cayó al vacío por abajo (X=${player.position.x}, Y=${player.position.y})")
