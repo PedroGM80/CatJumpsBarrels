@@ -1,10 +1,12 @@
 package dev.pgm.game.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.pgm.game.audio.MusicPlayer
 import dev.pgm.game.audio.RetroSoundGenerator
 import dev.pgm.game.presentation.ui.CreditsScreen
 import dev.pgm.game.presentation.ui.GameScreen
@@ -27,21 +29,33 @@ fun NavigationGraph(
     ) {
         // Pantalla de Menú Principal
         composable(Screen.MainMenu.route) {
+            // Iniciar música del menú cuando se entra
+            DisposableEffect(Unit) {
+                MusicPlayer.playMenuMusic()
+                onDispose {
+                    MusicPlayer.stopMusic()
+                }
+            }
+
             MainMenuScreen(
                 onNavigateToGame = {
                     RetroSoundGenerator.playMenuConfirm()
+                    MusicPlayer.stopMusic()
                     navController.navigate(Screen.Game.route)
                 },
                 onNavigateToHighScores = {
                     RetroSoundGenerator.playMenuConfirm()
+                    MusicPlayer.stopMusic()
                     navController.navigate(Screen.HighScores.route)
                 },
                 onNavigateToCredits = {
                     RetroSoundGenerator.playMenuConfirm()
+                    MusicPlayer.stopMusic()
                     navController.navigate(Screen.Credits.route)
                 },
                 onExit = {
                     RetroSoundGenerator.playMenuConfirm()
+                    MusicPlayer.stopMusic()
                     onExitApplication()
                 }
             )
