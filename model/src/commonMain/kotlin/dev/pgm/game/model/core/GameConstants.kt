@@ -116,6 +116,9 @@ object GameConstants {
     /** Velocidad horizontal base de los barriles */
     const val BARREL_SPEED = 2.5f
 
+    /** Incremento de velocidad de barriles por nivel (multiplicador) */
+    const val BARREL_SPEED_INCREASE_PER_LEVEL = 0.15f
+
     /** Velocidad de rotación visual de los barriles */
     const val BARREL_ROLL_SPEED = 0.12f
 
@@ -254,6 +257,16 @@ object GameConstants {
 
     /** Delay mínimo entre frames (en milisegundos) */
     const val MIN_FRAME_DELAY_MS = 1L
+
+    // ========== Funciones Helper ==========
+
+    /**
+     * Calcula la velocidad del barril según el nivel actual.
+     * La velocidad aumenta progresivamente con cada nivel.
+     */
+    fun getBarrelSpeedForLevel(level: Int): Float {
+        return BARREL_SPEED * (1f + (level - 1) * BARREL_SPEED_INCREASE_PER_LEVEL)
+    }
 
     // ========== Proporciones de Dibujo (relativas al tamaño del sprite) ==========
 

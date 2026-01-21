@@ -39,12 +39,16 @@ class SpawnBarrelUseCase {
             if (boss.animationFrame >= 2) {
                 barrelSpawnedInCurrentThrow = true
 
+                // Velocidad del barril según el nivel actual
+                val barrelSpeed = GameConstants.getBarrelSpeedForLevel(state.level)
+
                 val newBarrel = Barrel(
                     position = Offset(
                         boss.position.x + boss.size / 2,
                         boss.position.y + boss.size
                     ),
-                    currentPlatformIndex = 5
+                    currentPlatformIndex = 5,
+                    velocity = Offset(barrelSpeed, 0f)
                 )
 
                 return state.copy(barrels = state.barrels + newBarrel)

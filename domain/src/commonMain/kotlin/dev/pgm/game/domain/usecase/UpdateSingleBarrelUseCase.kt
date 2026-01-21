@@ -21,6 +21,9 @@ class UpdateSingleBarrelUseCase {
             return null
         }
 
+        // Obtener velocidad del barril según el nivel actual
+        val barrelSpeed = GameConstants.getBarrelSpeedForLevel(state.level)
+
         // Actualizar rotación visual según dirección
         val rotationSpeed = if (barrel.velocity.x != 0f) {
             barrel.velocity.x * GameConstants.BARREL_ROLL_SPEED
@@ -30,8 +33,8 @@ class UpdateSingleBarrelUseCase {
         val newRotation = barrel.rotation + rotationSpeed
 
         return when {
-            barrel.isOnLadder -> updateBarrelOnLadder(barrel, newRotation, state)
-            barrel.isFalling -> updateBarrelFalling(barrel, newRotation, state)
+            barrel.isOnLadder -> updateBarrelOnLadder(barrel, newRotation, state, barrelSpeed)
+            barrel.isFalling -> updateBarrelFalling(barrel, newRotation, state, barrelSpeed)
             else -> updateBarrelOnPlatform(barrel, newRotation, state)
         }
     }
@@ -39,7 +42,7 @@ class UpdateSingleBarrelUseCase {
     /**
      * Barril bajando por una escalera
      */
-    private fun updateBarrelOnLadder(barrel: Barrel, rotation: Float, state: GameState): Barrel {
+    private fun updateBarrelOnLadder(barrel: Barrel, rotation: Float, state: GameState, barrelSpeed: Float): Barrel {
         val fallSpeed = GameConstants.BARREL_LADDER_FALL_SPEED
         val newY = barrel.position.y + fallSpeed
 
@@ -57,7 +60,7 @@ class UpdateSingleBarrelUseCase {
                     position = Offset(barrel.position.x, platformY - barrel.size),
                     isOnLadder = false,
                     currentPlatformIndex = targetPlatformIndex,
-                    velocity = Offset(GameConstants.BARREL_SPEED * newDirection, 0f),
+                    velocity = Offset(barrelSpeed * newDirection, 0f),
                     rotation = rotation,
                     lastLadderChecked = -1,
                     targetPlatformIndex = null
@@ -76,7 +79,7 @@ class UpdateSingleBarrelUseCase {
     /**
      * Barril cayendo en caída libre (por el borde de la plataforma)
      */
-    private fun updateBarrelFalling(barrel: Barrel, rotation: Float, state: GameState): Barrel {
+    private fun updateBarrelFalling(barrel: Barrel, rotation: Float, state: GameState, barrelSpeed: Float): Barrel {
         val fallSpeed = GameConstants.BARREL_FREE_FALL_SPEED
 
         // Mantener velocidad horizontal mientras cae
@@ -99,7 +102,7 @@ class UpdateSingleBarrelUseCase {
                         position = Offset(newX, platformY - barrel.size),
                         isFalling = false,
                         currentPlatformIndex = platform.index,
-                        velocity = Offset(GameConstants.BARREL_SPEED * newDirection, 0f),
+                        velocity = Offset(barrelSpeed * newDirection, 0f),
                         rotation = rotation,
                         lastLadderChecked = -1
                     )

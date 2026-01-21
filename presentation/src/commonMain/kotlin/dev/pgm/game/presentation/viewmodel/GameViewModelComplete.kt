@@ -329,12 +329,34 @@ class GameViewModelComplete(
                 playerCenterY >= winZone.y &&
                 playerCenterY <= winZone.y + winZone.height
 
-        return if (playerInWinZone && !state.isWon) {
+        return if (playerInWinZone) {
+            // Incrementar nivel y puntos, resetear al jugador
+            val newLevel = state.level + 1
             val newScore = state.score + GameConstants.POINTS_WIN
+
+            // Resetear spawn de barriles
+            spawnBarrelUseCase.reset()
+
+            // Volver al inicio (plataforma 0)
+            val startPlatform = state.platforms[0]
+            val playerY = startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE
+
+            // Sonido de victoria
+            onPlaySound?.invoke(SoundEvent.WIN)
+
             state.copy(
-                isWon = true,
+                level = newLevel,
                 score = newScore,
-                highScore = maxOf(state.highScore, newScore)
+                highScore = maxOf(state.highScore, newScore),
+                barrels = emptyList(), // Limpiar todos los barriles
+                player = state.player.copy(
+                    position = androidx.compose.ui.geometry.Offset(50f, playerY),
+                    velocity = androidx.compose.ui.geometry.Offset.Zero,
+                    state = PlayerState.IDLE,
+                    isOnGround = true,
+                    isClimbing = false,
+                    animationFrame = 0
+                )
             )
         } else {
             state
