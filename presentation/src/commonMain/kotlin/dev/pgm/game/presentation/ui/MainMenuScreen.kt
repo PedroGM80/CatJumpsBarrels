@@ -74,16 +74,19 @@ fun MainMenuScreen(
             // Botones del menú
             MenuButton(
                 text = "NEW GAME",
+                icon = "▶",
                 onClick = onNavigateToGame
             )
 
             MenuButton(
                 text = "HIGH SCORES",
+                icon = "★",
                 onClick = onNavigateToHighScores
             )
 
             MenuButton(
                 text = "CREDITS",
+                icon = "ℹ",
                 onClick = onNavigateToCredits
             )
 
@@ -91,6 +94,7 @@ fun MainMenuScreen(
 
             MenuButton(
                 text = "EXIT",
+                icon = "✕",
                 onClick = { showExitConfirmation = true }
             )
         }
@@ -132,11 +136,13 @@ fun MainMenuScreen(
                     Spacer(modifier = Modifier.height(40.dp))
                     MenuButton(
                         text = "YES, EXIT",
+                        icon = "✓",
                         onClick = onExit
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     MenuButton(
                         text = "NO, STAY",
+                        icon = "✕",
                         onClick = { showExitConfirmation = false }
                     )
                 }
@@ -151,6 +157,7 @@ fun MainMenuScreen(
 @Composable
 private fun MenuButton(
     text: String,
+    icon: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -159,7 +166,7 @@ private fun MenuButton(
 
     // Animación de escala al hover
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else if (isHovered) 1.05f else 1f,
+        targetValue = if (isPressed) 0.95f else if (isHovered) 1.08f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -168,17 +175,23 @@ private fun MenuButton(
 
     Box(
         modifier = modifier
-            .width(280.dp)
-            .height(60.dp)
+            .width(300.dp)
+            .height(65.dp)
             .scale(scale)
             .border(
-                width = 3.dp,
-                color = when {
-                    isPressed -> Color(0xFFFF6B00)
-                    isHovered -> Color(0xFFFFD700)
-                    else -> Color.White
+                width = 4.dp,
+                brush = when {
+                    isPressed -> Brush.linearGradient(
+                        colors = listOf(Color(0xFFFF6B00), Color(0xFFFF0000))
+                    )
+                    isHovered -> Brush.linearGradient(
+                        colors = listOf(Color(0xFFFFD700), Color(0xFFFFA500))
+                    )
+                    else -> Brush.linearGradient(
+                        colors = listOf(Color.White, Color(0xFFCCCCCC))
+                    )
                 },
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(12.dp)
             )
             .background(
                 brush = when {
@@ -192,7 +205,7 @@ private fun MenuButton(
                         colors = listOf(Color(0xFF1A1A1A), Color(0xFF0A0A0A))
                     )
                 },
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(12.dp)
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -207,23 +220,48 @@ private fun MenuButton(
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            style = TextStyle(
-                fontFamily = GameFonts.GameFont,
-                fontSize = 18.sp,
-                color = when {
-                    isPressed -> Color(0xFFFF6B00)
-                    isHovered -> Color(0xFFFFD700)
-                    else -> Color.White
-                },
-                fontWeight = FontWeight.Bold,
-                shadow = if (isHovered) Shadow(
-                    color = Color(0xFFFFD700).copy(alpha = 0.5f),
-                    blurRadius = 8f
-                ) else null
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // Icono
+            Text(
+                text = icon,
+                style = TextStyle(
+                    fontSize = 24.sp,
+                    color = when {
+                        isPressed -> Color(0xFFFF6B00)
+                        isHovered -> Color(0xFFFFD700)
+                        else -> Color(0xFF00FFFF)
+                    },
+                    shadow = if (isHovered) Shadow(
+                        color = Color(0xFFFFD700).copy(alpha = 0.8f),
+                        blurRadius = 15f
+                    ) else null
+                )
             )
-        )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Texto
+            Text(
+                text = text,
+                style = TextStyle(
+                    fontFamily = GameFonts.GameFont,
+                    fontSize = 20.sp,
+                    color = when {
+                        isPressed -> Color(0xFFFF6B00)
+                        isHovered -> Color(0xFFFFD700)
+                        else -> Color.White
+                    },
+                    fontWeight = FontWeight.Bold,
+                    shadow = if (isHovered) Shadow(
+                        color = Color(0xFFFFD700).copy(alpha = 0.7f),
+                        blurRadius = 12f
+                    ) else null
+                )
+            )
+        }
     }
 }
 
@@ -236,7 +274,7 @@ private fun AnimatedLogo() {
     val infiniteTransition = rememberInfiniteTransition()
     val offsetY by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = -10f,
+        targetValue = -15f,
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -245,44 +283,109 @@ private fun AnimatedLogo() {
 
     // Animación de pulso de brillo
     val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.7f,
+        initialValue = 0.4f,
+        targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         )
     )
 
+    // Animación de escala
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
     Column(
-        modifier = Modifier.offset(y = offsetY.dp),
+        modifier = Modifier
+            .offset(y = offsetY.dp)
+            .scale(scale),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "CAT JUMP",
-            style = TextStyle(
-                fontFamily = GameFonts.GameFont,
-                fontSize = 48.sp,
-                color = Color(0xFFFFD700),
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                shadow = Shadow(
-                    color = Color(0xFFFFD700).copy(alpha = glowAlpha),
-                    blurRadius = 20f,
-                    offset = Offset.Zero
+        // Título principal con múltiples sombras para efecto 3D
+        Box(contentAlignment = Alignment.Center) {
+            // Sombra trasera (efecto 3D)
+            Text(
+                text = "CAT JUMP",
+                style = TextStyle(
+                    fontFamily = GameFonts.GameFont,
+                    fontSize = 72.sp,
+                    color = Color(0xFF8B4513),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.offset(x = 4.dp, y = 4.dp)
+            )
+            // Texto principal con glow
+            Text(
+                text = "CAT JUMP",
+                style = TextStyle(
+                    fontFamily = GameFonts.GameFont,
+                    fontSize = 72.sp,
+                    color = Color(0xFFFFD700),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    shadow = Shadow(
+                        color = Color(0xFFFF6B00).copy(alpha = glowAlpha),
+                        blurRadius = 30f,
+                        offset = Offset.Zero
+                    )
                 )
             )
-        )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(contentAlignment = Alignment.Center) {
+            // Sombra trasera
+            Text(
+                text = "BARRELS",
+                style = TextStyle(
+                    fontFamily = GameFonts.GameFont,
+                    fontSize = 72.sp,
+                    color = Color(0xFF8B4513),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.offset(x = 4.dp, y = 4.dp)
+            )
+            // Texto principal
+            Text(
+                text = "BARRELS",
+                style = TextStyle(
+                    fontFamily = GameFonts.GameFont,
+                    fontSize = 72.sp,
+                    color = Color(0xFFFFD700),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    shadow = Shadow(
+                        color = Color(0xFFFF6B00).copy(alpha = glowAlpha),
+                        blurRadius = 30f,
+                        offset = Offset.Zero
+                    )
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Subtítulo
         Text(
-            text = "BARRELS",
+            text = "~ A Retro Arcade Adventure ~",
             style = TextStyle(
                 fontFamily = GameFonts.GameFont,
-                fontSize = 48.sp,
-                color = Color(0xFFFFD700),
-                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = Color(0xFF00FFFF),
+                fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 shadow = Shadow(
-                    color = Color(0xFFFFD700).copy(alpha = glowAlpha),
-                    blurRadius = 20f,
+                    color = Color(0xFF00FFFF).copy(alpha = 0.5f),
+                    blurRadius = 10f,
                     offset = Offset.Zero
                 )
             )
@@ -300,17 +403,19 @@ private fun FloatingParticles() {
         val y: Float,
         val size: Float,
         val speed: Float,
-        val alpha: Float
+        val alpha: Float,
+        val colorHue: Int // 0=gold, 1=cyan, 2=magenta
     )
 
     val particles = remember {
-        List(30) {
+        List(50) { // Más partículas
             Particle(
                 x = Random.nextFloat(),
                 y = Random.nextFloat(),
-                size = Random.nextFloat() * 3f + 2f,
-                speed = Random.nextFloat() * 0.5f + 0.2f,
-                alpha = Random.nextFloat() * 0.3f + 0.2f
+                size = Random.nextFloat() * 4f + 1f,
+                speed = Random.nextFloat() * 0.8f + 0.3f,
+                alpha = Random.nextFloat() * 0.4f + 0.3f,
+                colorHue = Random.nextInt(3)
             )
         }
     }
@@ -324,15 +429,53 @@ private fun FloatingParticles() {
         }
     }
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        particles.forEach { particle ->
-            val x = size.width * particle.x
-            val y = (size.height * particle.y + time * particle.speed * 100f) % size.height
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Partículas
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            particles.forEach { particle ->
+                val x = size.width * particle.x
+                val y = (size.height * particle.y + time * particle.speed * 100f) % size.height
 
-            drawCircle(
-                color = Color(0xFFFFD700).copy(alpha = particle.alpha),
-                radius = particle.size,
-                center = Offset(x, y)
+                val color = when (particle.colorHue) {
+                    0 -> Color(0xFFFFD700) // Dorado
+                    1 -> Color(0xFF00FFFF) // Cian
+                    else -> Color(0xFFFF00FF) // Magenta
+                }.copy(alpha = particle.alpha * (0.7f + 0.3f * sin(time * 2f + particle.x * 10f)))
+
+                drawCircle(
+                    color = color,
+                    radius = particle.size,
+                    center = Offset(x, y)
+                )
+            }
+        }
+
+        // Efecto scanlines CRT
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val lineHeight = 4f
+            var y = 0f
+            while (y < size.height) {
+                drawLine(
+                    color = Color.Black.copy(alpha = 0.15f),
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 2f
+                )
+                y += lineHeight
+            }
+        }
+
+        // Vignette en bordes para profundidad
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRect(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black.copy(alpha = 0.6f)
+                    ),
+                    center = center,
+                    radius = size.maxDimension * 0.9f
+                )
             )
         }
     }
