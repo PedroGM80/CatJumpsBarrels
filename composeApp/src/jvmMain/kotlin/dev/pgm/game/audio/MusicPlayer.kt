@@ -63,89 +63,98 @@ object MusicPlayer {
     }
 
     /**
-     * Genera una melodía tranquila para el menú principal.
-     * Usa una progresión armónica suave con tempo moderado.
+     * Genera una melodía pegadiza estilo 8-bit NES para el menú principal.
+     * Inspirada en clásicos como Super Mario Bros y Zelda.
      */
     private fun generateMenuMelody(): ByteArray {
-        // Tempo: 80 BPM, cada nota negra = 750ms
-        val eighthNote = 375  // Corchea
-        val quarterNote = 750 // Negra
-        val halfNote = 1500   // Blanca
-        val dottedHalf = 2250 // Blanca con puntillo
+        // Tempo: 120 BPM (más alegre), cada nota negra = 500ms
+        val sixteenthNote = 125  // Semicorchea
+        val eighthNote = 250     // Corchea
+        val quarterNote = 500    // Negra
+        val halfNote = 1000      // Blanca
 
-        // Melodía principal - progresión más dinámica
+        // Melodía principal - patrón pegadizo estilo NES con arpegios
         val melody = listOf(
-            // Frase 1 - Introducción tranquila (I - V - vi - IV)
+            // Motivo principal A - patrón alegre y saltarín
+            Note(523.0, eighthNote),    // C5
+            Note(659.0, eighthNote),    // E5
+            Note(784.0, eighthNote),    // G5
+            Note(659.0, eighthNote),    // E5
+            Note(523.0, eighthNote),    // C5
+            Note(659.0, eighthNote),    // E5
+            Note(784.0, quarterNote),   // G5
+            Note(0.0, eighthNote),      // Silencio
+
+            // Repetición del motivo con variación
+            Note(523.0, eighthNote),    // C5
+            Note(659.0, eighthNote),    // E5
+            Note(784.0, eighthNote),    // G5
+            Note(880.0, eighthNote),    // A5
+            Note(784.0, eighthNote),    // G5
+            Note(659.0, eighthNote),    // E5
             Note(523.0, quarterNote),   // C5
-            Note(659.0, quarterNote),   // E5
-            Note(587.0, quarterNote),   // D5
-            Note(523.0, eighthNote),    // C5
-            Note(392.0, halfNote),      // G4
-            Note(0.0, quarterNote),     // Silencio
+            Note(0.0, eighthNote),      // Silencio
 
-            // Frase 2 - Desarrollo (vi - IV - I - V)
-            Note(440.0, quarterNote),   // A4
+            // Motivo B - respuesta melódica
+            Note(587.0, eighthNote),    // D5
+            Note(659.0, eighthNote),    // E5
+            Note(698.0, eighthNote),    // F5
+            Note(784.0, eighthNote),    // G5
+            Note(659.0, eighthNote),    // E5
+            Note(587.0, eighthNote),    // D5
             Note(523.0, quarterNote),   // C5
-            Note(587.0, eighthNote),    // D5
-            Note(523.0, eighthNote),    // C5
-            Note(392.0, halfNote),      // G4
-            Note(0.0, quarterNote),     // Silencio
+            Note(0.0, eighthNote),      // Silencio
 
-            // Frase 3 - Clímax suave (I - iii - IV - V)
+            // Cierre con salto octava (estilo Super Mario)
+            Note(392.0, eighthNote),    // G4
             Note(523.0, eighthNote),    // C5
-            Note(587.0, eighthNote),    // D5
-            Note(659.0, quarterNote),   // E5
-            Note(587.0, quarterNote),   // D5
-            Note(523.0, eighthNote),    // C5
-            Note(440.0, halfNote),      // A4
+            Note(659.0, eighthNote),    // E5
+            Note(784.0, eighthNote),    // G5
+            Note(1047.0, eighthNote),   // C6 - salto de octava
+            Note(784.0, eighthNote),    // G5
+            Note(523.0, halfNote),      // C5 - resolución
             Note(0.0, quarterNote),     // Silencio
-
-            // Frase 4 - Resolución final (IV - V - I)
-            Note(523.0, eighthNote),    // C5
-            Note(440.0, eighthNote),    // A4
-            Note(392.0, quarterNote),   // G4
-            Note(330.0, quarterNote),   // E4
-            Note(262.0, dottedHalf),    // C4 - cierre en tónica
-            Note(0.0, quarterNote),     // Silencio final
         )
 
-        // Bajo acompañamiento - fundamental de cada acorde, más corto
+        // Bajo estilo NES - patrón de walking bass con ritmo marcado
         val bass = listOf(
-            // Acorde C (I)
-            Note(262.0, halfNote),      // C4
+            // Patrón I - V (típico de 8-bit)
+            Note(262.0, eighthNote),    // C4
+            Note(0.0, sixteenthNote),
+            Note(262.0, sixteenthNote), // C4
+            Note(196.0, eighthNote),    // G3
+            Note(0.0, sixteenthNote),
+            Note(196.0, sixteenthNote), // G3
+            Note(262.0, eighthNote),    // C4
             Note(0.0, eighthNote),
-            // Acorde G (V)
-            Note(196.0, halfNote),      // G3
-            Note(0.0, eighthNote),
-            // Acorde Am (vi)
-            Note(220.0, halfNote),      // A3
-            Note(0.0, quarterNote),
 
-            // Acorde F (IV)
-            Note(175.0, halfNote),      // F3
+            Note(262.0, eighthNote),    // C4
+            Note(0.0, sixteenthNote),
+            Note(262.0, sixteenthNote), // C4
+            Note(196.0, eighthNote),    // G3
+            Note(220.0, eighthNote),    // A3
+            Note(262.0, quarterNote),   // C4
             Note(0.0, eighthNote),
-            // Acorde C (I)
-            Note(262.0, halfNote),      // C4
-            Note(0.0, eighthNote),
-            // Acorde G (V)
-            Note(196.0, halfNote),      // G3
-            Note(0.0, quarterNote),
 
-            // Acorde C (I)
-            Note(262.0, halfNote),      // C4
+            // Patrón IV - V - I
+            Note(175.0, eighthNote),    // F3
+            Note(0.0, sixteenthNote),
+            Note(175.0, sixteenthNote), // F3
+            Note(196.0, eighthNote),    // G3
+            Note(0.0, sixteenthNote),
+            Note(196.0, sixteenthNote), // G3
+            Note(262.0, quarterNote),   // C4
             Note(0.0, eighthNote),
-            // Acorde Em (iii)
-            Note(165.0, quarterNote),   // E3
-            Note(0.0, eighthNote),
-            Note(220.0, halfNote),      // A3
-            Note(0.0, quarterNote),
 
-            // Acorde F (IV)
-            Note(175.0, halfNote),      // F3
-            // Acorde G (V)
-            Note(196.0, quarterNote),   // G3
-            // Acorde C (I) - final
-            Note(262.0, dottedHalf),    // C4
+            // Cierre con patrón de tónica
+            Note(196.0, eighthNote),    // G3
+            Note(262.0, eighthNote),    // C4
+            Note(196.0, eighthNote),    // G3
+            Note(262.0, eighthNote),    // C4
+            Note(262.0, eighthNote),    // C4
+            Note(0.0, sixteenthNote),
+            Note(262.0, sixteenthNote), // C4
+            Note(262.0, halfNote),      // C4 - final
             Note(0.0, quarterNote),
         )
 
