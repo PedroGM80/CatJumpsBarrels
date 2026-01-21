@@ -70,26 +70,11 @@ fun CreditsScreen(
                     "Kotlin Multiplatform",
                     "Jetpack Compose Desktop",
                     "Clean Architecture",
-                    "Room Database",
                     "Koin DI",
                     "Coroutines"
                 )
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Controles
-            CreditSection(
-                title = "CONTROLS",
-                content = listOf(
-                    "WASD or Arrow Keys - Move",
-                    "W or Up - Climb Up",
-                    "S or Down - Climb Down",
-                    "SPACE - Jump",
-                    "P or ESC - Pause",
-                    "R - Restart"
-                )
-            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -97,13 +82,12 @@ fun CreditsScreen(
             CreditSection(
                 title = "ATTRIBUTIONS",
                 content = listOf(
-                    "Font: Press Start 2P",
-                    "by Google Fonts",
-                    "Inspired by Donkey Kong (1981)",
-                    "Original concept by Nintendo"
+                    "Font: Press Start 2P by Google Fonts",
+                    "Inspired by Donkey Kong Atari 2600 (1982)",
+                    "Atari 2600 Port by Coleco / Garry Kitchen",
+                    "Original characters & concept by Nintendo"
                 )
             )
-
             Spacer(modifier = Modifier.height(24.dp))
 
             // Enlaces
