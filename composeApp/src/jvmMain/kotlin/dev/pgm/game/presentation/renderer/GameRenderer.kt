@@ -23,10 +23,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import catjumpsbarrels.composeapp.generated.resources.*
+import dev.pgm.game.data.resources.ImageLoader
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.*
-import dev.pgm.game.model.entities.Direction
 import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
 import dev.pgm.game.presentation.theme.GameFonts
@@ -50,7 +50,6 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
     val ironTexturePainter = painterResource(Res.drawable.iron_texture)
 
     Box(modifier = modifier) {
-        // Fondo de imagen
         Image(
             painter = painterResource(Res.drawable.background_industrial),
             contentDescription = "Background",
@@ -58,7 +57,6 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
             contentScale = ContentScale.Crop
         )
         
-        // Capa semi-transparente para oscurecer un poco el fondo
         Box(
             modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f))
         )
@@ -69,12 +67,10 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
             val levelWidth = GameConstants.LEVEL_WIDTH
             val levelHeight = GameConstants.LEVEL_HEIGHT
 
-            // Calcular factor de escala manteniendo proporción
             val scaleX = screenWidth / levelWidth
             val scaleY = screenHeight / levelHeight
             val scale = minOf(scaleX, scaleY)
 
-            // Calcular offset para centrar el nivel escalado
             val scaledWidth = levelWidth * scale
             val scaledHeight = levelHeight * scale
             val offsetX = (screenWidth - scaledWidth) / 2f
@@ -121,7 +117,6 @@ private fun BoxScope.HUD(state: GameState) {
             }
         }
     }
-    // Controles en la parte superior con estilo mejorado
     Column(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -129,7 +124,7 @@ private fun BoxScope.HUD(state: GameState) {
         Text(
             "CONTROLS",
             style = TextStyle(
-                color = Color(0xFFFFD700),  // Dorado
+                color = Color(0xFFFFD700),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = GameFonts.GameFont
@@ -139,7 +134,7 @@ private fun BoxScope.HUD(state: GameState) {
         Text(
             "WASD/Arrows: Move  •  SPACE: Jump  •  P: Pause",
             style = TextStyle(
-                color = Color(0xFFFFFFFF),  // Blanco puro
+                color = Color(0xFFFFFFFF),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 fontFamily = GameFonts.GameFont
@@ -185,7 +180,7 @@ private fun BoxScope.PauseScreen() {
 
 private fun DrawScope.drawPlayer(player: Player) {
     val animation = CatAnimation.animations[player.state] ?: CatAnimation.animations[PlayerState.IDLE]!!
-    if (animation.isEmpty()) return // Evitar división por cero si la animación está vacía
+    if (animation.isEmpty()) return
 
     val frameIndex = player.animationFrame % animation.size
     val image = animation[frameIndex]
@@ -213,7 +208,6 @@ private fun DrawScope.drawDonkeyKong(dk: Boss) {
     val frameIndex = dk.animationFrame % animation.size
     val image = animation[frameIndex]
 
-    // Dibujar pila de barriles detrás del perro
     drawBarrelStackBehindBoss(dk)
 
     withTransform({
@@ -226,10 +220,9 @@ private fun DrawScope.drawDonkeyKong(dk: Boss) {
     }
 }
 
-// Imagen de barril precargada (se carga una sola vez)
 private val barrelStackImage: ImageBitmap? by lazy {
     try {
-        dev.pgm.game.data.resources.ImageLoader.loadResourceImage("drawable/barrel_empty.png")
+        ImageLoader.loadResourceImage("drawable/barrel_empty.png")
     } catch (e: Exception) {
         null
     }
@@ -294,12 +287,9 @@ private fun DrawScope.drawBarrel(barrel: Barrel) {
 
 private fun DrawScope.drawPlatform(platform: Platform, painter: Painter) {
     val startY = platform.getYAt(platform.left)
-
-    // Calcular el ángulo de inclinación en grados
     val angleRad = kotlin.math.atan(platform.slope)
     val angleDeg = angleRad * 180f / kotlin.math.PI.toFloat()
 
-    // Dibujar la imagen de la viga estirada a lo largo de la plataforma
     withTransform({
         translate(left = platform.left, top = startY)
         rotate(degrees = angleDeg, pivot = Offset(0f, 0f))
@@ -319,7 +309,6 @@ private fun DrawScope.drawLadder(ladder: Ladder, texturePainter: Painter) {
     val leftX = pos.x + 4f
     val rightX = pos.x + w - 4f
 
-    // Dibujar los postes verticales izquierdo y derecho con textura
     withTransform({
         translate(left = leftX, top = pos.y)
     }) {
@@ -336,7 +325,6 @@ private fun DrawScope.drawLadder(ladder: Ladder, texturePainter: Painter) {
         }
     }
 
-    // Dibujar los escalones horizontales con textura
     var y = pos.y + 15f
     while (y < pos.y + h - 5f) {
         withTransform({

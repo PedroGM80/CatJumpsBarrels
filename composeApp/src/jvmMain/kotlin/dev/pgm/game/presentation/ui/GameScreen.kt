@@ -18,6 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.pgm.game.audio.RetroSoundGenerator
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.input.InputHandler
 import dev.pgm.game.model.core.GameConstants
@@ -47,6 +48,20 @@ fun GameScreen(
     var showQuitMenu by remember { mutableStateOf(false) }
     val inputHandler = remember { InputHandler() }
     val focusRequester = remember { FocusRequester() }
+
+    // Conectar sonidos al ViewModel
+    LaunchedEffect(viewModel) {
+        viewModel.onPlaySound = { event ->
+            when (event) {
+                GameViewModelComplete.SoundEvent.JUMP -> RetroSoundGenerator.playJump()
+                GameViewModelComplete.SoundEvent.SCORE -> RetroSoundGenerator.playScore()
+                GameViewModelComplete.SoundEvent.DEATH -> RetroSoundGenerator.playDeath()
+                GameViewModelComplete.SoundEvent.WIN -> RetroSoundGenerator.playWin()
+                GameViewModelComplete.SoundEvent.PAUSE -> RetroSoundGenerator.playPause()
+                GameViewModelComplete.SoundEvent.BARREL_THROW -> RetroSoundGenerator.playBarrelThrow()
+            }
+        }
+    }
 
     // Reset game state and request focus when the screen is first composed
     LaunchedEffect(Unit) {
@@ -96,7 +111,6 @@ fun GameScreen(
                     onEscape = {
                         val willShowMenu = !showQuitMenu
                         showQuitMenu = willShowMenu
-                        // Pausar al abrir, reanudar al cerrar
                         if (willShowMenu && !gameState.isPaused) {
                             viewModel.togglePause()
                         } else if (!willShowMenu && gameState.isPaused) {

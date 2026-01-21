@@ -16,17 +16,19 @@ class InputHandler {
      * @param event The keyboard event to process
      * @param currentInput The current input state
      * @param onRestart Callback when restart is requested (R key)
-     * @param onPause Callback when pause is requested (P or Escape key)
+     * @param onPause Callback when pause is requested (P key)
+     * @param onEscape Callback when escape is pressed (Escape key)
      * @return Pair of (updated GameInput, was event consumed)
      */
     fun handleKeyEvent(
         event: KeyEvent,
         currentInput: GameInput,
         onRestart: () -> Unit = {},
-        onPause: () -> Unit = {}
+        onPause: () -> Unit = {},
+        onEscape: () -> Unit = {}
     ): Pair<GameInput, Boolean> {
         return when (event.type) {
-            KeyEventType.KeyDown -> handleKeyDown(event, currentInput, onRestart, onPause)
+            KeyEventType.KeyDown -> handleKeyDown(event, currentInput, onRestart, onPause, onEscape)
             KeyEventType.KeyUp -> handleKeyUp(event, currentInput)
             else -> currentInput to false
         }
@@ -36,15 +38,20 @@ class InputHandler {
         event: KeyEvent,
         input: GameInput,
         onRestart: () -> Unit,
-        onPause: () -> Unit
+        onPause: () -> Unit,
+        onEscape: () -> Unit
     ): Pair<GameInput, Boolean> {
         return when (event.key) {
             Key.R -> {
                 onRestart()
                 input to true
             }
-            Key.P, Key.Escape -> {
+            Key.P -> {
                 onPause()
+                input to true
+            }
+            Key.Escape -> {
+                onEscape()
                 input to true
             }
             Key.DirectionLeft, Key.A -> input.copy(left = true) to true
