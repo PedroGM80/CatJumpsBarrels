@@ -1,5 +1,6 @@
 package dev.pgm.game.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -13,8 +14,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.input.InputHandler
 import dev.pgm.game.model.core.GameConstants
@@ -41,8 +44,7 @@ fun GameScreen(
     val showHighScoreDialog by viewModel.showHighScoreDialog.collectAsState()
 
     var input by remember { mutableStateOf(GameInput()) }
-    var shouldRestart by remember { mutableStateOf(false) }
-    var shouldTogglePause by remember { mutableStateOf(false) }
+    var showQuitMenu by remember { mutableStateOf(false) }
     val inputHandler = remember { InputHandler() }
     val focusRequester = remember { FocusRequester() }
 
@@ -55,21 +57,6 @@ fun GameScreen(
     LaunchedEffect(gameState.isGameOver, gameState.isWon) {
         if (gameState.isGameOver || gameState.isWon) {
             viewModel.checkIfHighScore()
-        }
-    }
-
-    // Manejar reinicio
-    LaunchedEffect(shouldRestart) {
-        if (shouldRestart) {
-            viewModel.restart()
-            shouldRestart = false
-        }
-    }
-
-    // Manejar pausa
-    LaunchedEffect(shouldTogglePause) {
-        if (shouldTogglePause) {
-            viewModel.togglePause()
         }
     }
 
@@ -99,8 +86,22 @@ fun GameScreen(
                 val (newInput, consumed) = inputHandler.handleKeyEvent(
                     event = event,
                     currentInput = input,
-                    onRestart = { shouldRestart = true },
-                    onPause = { shouldTogglePause = !shouldTogglePause }
+                    onRestart = { viewModel.restart() },
+                    onPause = {
+                        if (!showQuitMenu) {
+                            viewModel.togglePause()
+                        }
+                    },
+                    onEscape = {
+                        val willShowMenu = !showQuitMenu
+                        showQuitMenu = willShowMenu
+                        // Pausar al abrir, reanudar al cerrar
+                        if (willShowMenu && !gameState.isPaused) {
+                            viewModel.togglePause()
+                        } else if (!willShowMenu && gameState.isPaused) {
+                            viewModel.togglePause()
+                        }
+                    }
                 )
                 input = newInput
                 consumed
@@ -134,6 +135,68 @@ fun GameScreen(
                     fontFamily = GameFonts.GameFont,
                     fontWeight = FontWeight.Bold
                 )
+            }
+        }
+
+        // Menú de salida (Escape)
+        if (showQuitMenu) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.8f))
+            ) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "QUIT GAME?",
+                        style = TextStyle(
+                            color = Color.White,
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = GameFonts.GameFont
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Button(
+                        onClick = {
+                            showQuitMenu = false
+                            if (gameState.isPaused) {
+                                viewModel.togglePause()
+                            }
+                            focusRequester.requestFocus()
+                        },
+                        modifier = Modifier.width(200.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4CAF50),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "CONTINUE",
+                            fontFamily = GameFonts.GameFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.width(200.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFF5252),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "QUIT TO MENU",
+                            fontFamily = GameFonts.GameFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
             }
         }
     }
