@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.pgm.game.audio.RetroSoundGenerator
 import dev.pgm.game.presentation.ui.CreditsScreen
 import dev.pgm.game.presentation.ui.GameScreen
 import dev.pgm.game.presentation.ui.HighScoresScreen
@@ -28,15 +29,21 @@ fun NavigationGraph(
         composable(Screen.MainMenu.route) {
             MainMenuScreen(
                 onNavigateToGame = {
+                    RetroSoundGenerator.playMenuConfirm()
                     navController.navigate(Screen.Game.route)
                 },
                 onNavigateToHighScores = {
+                    RetroSoundGenerator.playMenuConfirm()
                     navController.navigate(Screen.HighScores.route)
                 },
                 onNavigateToCredits = {
+                    RetroSoundGenerator.playMenuConfirm()
                     navController.navigate(Screen.Credits.route)
                 },
-                onExit = onExitApplication
+                onExit = {
+                    RetroSoundGenerator.playMenuConfirm()
+                    onExitApplication()
+                }
             )
         }
 

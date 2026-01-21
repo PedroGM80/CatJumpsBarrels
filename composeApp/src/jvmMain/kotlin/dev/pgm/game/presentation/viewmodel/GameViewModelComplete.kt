@@ -2,6 +2,7 @@ package dev.pgm.game.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.pgm.game.audio.RetroSoundGenerator
 import dev.pgm.game.domain.usecase.*
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
@@ -41,6 +42,9 @@ class GameViewModelComplete(
     private val _pendingScore = MutableStateFlow(0)
 
     private var animationTimer = 0f
+    private var previousPlayerState: PlayerState = PlayerState.IDLE
+    private var previousScore: Int = 0
+    private var previousBarrelCount: Int = 0
 
     /**
      * Actualiza el estado del juego cada frame.
@@ -74,7 +78,13 @@ class GameViewModelComplete(
             newState = updateBarrelsUseCase(newState)
 
             // 5. Spawner barriles
+            val stateBeforeSpawn = newState
             newState = spawnBarrelUseCase(newState, System.currentTimeMillis())
+
+            // Sonido de barril lanzado
+            if (newState.barrels.size > stateBeforeSpawn.barrels.size) {
+                RetroSoundGenerator.playBarrelThrow()
+            }
 
             // 6. Actualizar partículas
             newState = updateParticlesUseCase(newState, deltaTime)
@@ -89,11 +99,41 @@ class GameViewModelComplete(
             newState = cleanupPopups(newState)
         }
 
+        // Detectar cambios de estado para sonidos
+        playSoundsOnStateChange(currentState, newState)
+
         _gameState.value = newState
+    }
+
+    private fun playSoundsOnStateChange(oldState: GameState, newState: GameState) {
+        // Sonido de salto
+        if (previousPlayerState != PlayerState.JUMPING && newState.player.state == PlayerState.JUMPING) {
+            RetroSoundGenerator.playJump()
+        }
+
+        // Sonido de puntuación (al saltar barril)
+        if (newState.score > previousScore && !newState.isWon) {
+            RetroSoundGenerator.playScore()
+        }
+
+        // Sonido de muerte
+        if (oldState.player.state != PlayerState.DEAD && newState.player.state == PlayerState.DEAD) {
+            RetroSoundGenerator.playDeath()
+        }
+
+        // Sonido de victoria
+        if (!oldState.isWon && newState.isWon) {
+            RetroSoundGenerator.playWin()
+        }
+
+        // Actualizar estado previo
+        previousPlayerState = newState.player.state
+        previousScore = newState.score
     }
 
     fun togglePause() {
         _gameState.value = _gameState.value.copy(isPaused = !_gameState.value.isPaused)
+        RetroSoundGenerator.playPause()
     }
 
     fun restart() {
