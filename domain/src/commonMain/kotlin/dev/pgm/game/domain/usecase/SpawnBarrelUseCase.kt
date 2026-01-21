@@ -34,12 +34,9 @@ class SpawnBarrelUseCase {
 
         // Si el Boss está en THROWING, crear el barril en el momento correcto
         if (boss.state == BossState.THROWING && !barrelSpawnedInCurrentThrow) {
-            // El barril se crea cuando la animación llega al frame 6 (momento del lanzamiento)
-            // Frames 0-2: Tomar barril (dogTakeBarrel) - 3 frames
-            // Frames 3-5: Preparar lanzamiento (dogLaunchBarrel0) - 3 frames
-            // Frame 6: Se crea el barril (inicio de dogLaunchBarrel2)
-            // Frames 6-8: Después de lanzar (dogLaunchBarrel2) - 3 frames, sin barril
-            if (boss.animationFrame >= 6) {
+            // El barril se crea en el último frame de la animación de lanzamiento
+            // THROWING tiene 3 frames (0, 1, 2), crear en frame 2
+            if (boss.animationFrame >= 2) {
                 barrelSpawnedInCurrentThrow = true
 
                 val newBarrel = Barrel(
