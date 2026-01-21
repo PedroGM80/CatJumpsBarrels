@@ -160,8 +160,8 @@ object MusicPlayer {
 
         // Mezclar melodía y bajo con volúmenes muy bajos para fondo sutil
         return mixTracks(
-            generateTrack(melody, volume = 8),   // Melodía más bajita
-            generateTrack(bass, volume = 5)      // Bajo muy sutil
+            generateTrack(melody, volume = 4),   // Melodía muy bajita
+            generateTrack(bass, volume = 2)      // Bajo casi imperceptible
         )
     }
 
