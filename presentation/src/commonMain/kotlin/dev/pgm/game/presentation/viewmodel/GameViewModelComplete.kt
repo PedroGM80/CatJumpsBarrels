@@ -314,20 +314,18 @@ class GameViewModelComplete(
     }
 
     private fun checkWinCondition(state: GameState): GameState {
-        val playerCenterX = state.player.position.x + state.player.size / 2
-        val playerCenterY = state.player.position.y + state.player.size / 2
-
+        // Usar hitbox del jugador para detectar colisión con el objetivo
+        val playerHitbox = state.player.hitbox
+        
+        // Zona de victoria ampliada para facilitar la detección
         val winZone = GameRect(
-            state.winObjetive.position.x,
-            state.winObjetive.position.y,
-            state.winObjetive.size,
-            state.winObjetive.size
+            state.winObjetive.position.x - 10f,
+            state.winObjetive.position.y - 10f,
+            state.winObjetive.size + 20f,
+            state.winObjetive.size + 20f
         )
 
-        val playerInWinZone = playerCenterX >= winZone.x &&
-                playerCenterX <= winZone.x + winZone.width &&
-                playerCenterY >= winZone.y &&
-                playerCenterY <= winZone.y + winZone.height
+        val playerInWinZone = playerHitbox.overlaps(winZone)
 
         return if (playerInWinZone) {
             // Incrementar nivel y puntos, resetear al jugador
@@ -339,7 +337,7 @@ class GameViewModelComplete(
 
             // Volver al inicio (plataforma 0)
             val startPlatform = state.platforms[0]
-            val playerY = startPlatform.getYAt(50f) - GameConstants.PLAYER_SIZE
+            val playerY = startPlatform.getYAt(GameConstants.PLAYER_START_X) - GameConstants.PLAYER_SIZE
 
             // Sonido de victoria
             onPlaySound?.invoke(SoundEvent.WIN)
@@ -350,12 +348,13 @@ class GameViewModelComplete(
                 highScore = maxOf(state.highScore, newScore),
                 barrels = emptyList(), // Limpiar todos los barriles
                 player = state.player.copy(
-                    position = androidx.compose.ui.geometry.Offset(50f, playerY),
+                    position = androidx.compose.ui.geometry.Offset(GameConstants.PLAYER_START_X, playerY),
                     velocity = androidx.compose.ui.geometry.Offset.Zero,
                     state = PlayerState.IDLE,
                     isOnGround = true,
                     isClimbing = false,
-                    animationFrame = 0
+                    animationFrame = 0,
+                    invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
                 )
             )
         } else {

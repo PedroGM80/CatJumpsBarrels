@@ -23,13 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.pgm.game.presentation.theme.GameFonts
-import kotlinx.coroutines.delay
-import kotlin.math.sin
-import kotlin.random.Random
 
 /**
- * Pantalla del menú principal.
- * Muestra tres opciones: Nuevo Juego, Records y Créditos.
+ * Pantalla del menú principal con estilo arcade retro.
  */
 @Composable
 fun MainMenuScreen(
@@ -42,170 +38,306 @@ fun MainMenuScreen(
     var showExitConfirmation by remember { mutableStateOf(false) }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Fondo con gradiente sutil
+        // Fondo con gradiente
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF0A0A0A),
-                            Color(0xFF1A1A1A),
-                            Color(0xFF0F0F0F)
+                            Color(0xFF0D0D1A),
+                            Color(0xFF1A1A2E),
+                            Color(0xFF16213E),
+                            Color(0xFF0D0D1A)
                         )
                     )
                 )
         )
 
-        // Partículas flotantes de fondo
-        FloatingParticles()
+        // Grid de fondo estilo arcade
+        ArcadeGrid()
+
+        // Efecto scanlines CRT sutil
+        CRTScanlines()
 
         // Contenido del menú
         Column(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.Center
         ) {
-            // Título del juego con animación
-            AnimatedLogo()
+            // Logo animado
+            AnimatedGameLogo()
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             // Botones del menú
-            MenuButton(
+            ArcadeMenuButton(
                 text = "NEW GAME",
                 icon = "▶",
+                color = Color(0xFF00FF88),
                 onClick = onNavigateToGame
-            )
-
-            MenuButton(
-                text = "HIGH SCORES",
-                icon = "★",
-                onClick = onNavigateToHighScores
-            )
-
-            MenuButton(
-                text = "CREDITS",
-                icon = "ℹ",
-                onClick = onNavigateToCredits
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            MenuButton(
+            ArcadeMenuButton(
+                text = "HIGH SCORES",
+                icon = "★",
+                color = Color(0xFFFFD700),
+                onClick = onNavigateToHighScores
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ArcadeMenuButton(
+                text = "CREDITS",
+                icon = "ℹ",
+                color = Color(0xFF00BFFF),
+                onClick = onNavigateToCredits
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            ArcadeMenuButton(
                 text = "EXIT",
                 icon = "✕",
+                color = Color(0xFFFF6B6B),
                 onClick = { showExitConfirmation = true }
             )
         }
 
-        // Versión en la esquina
+        // Versión
         Text(
             text = "v1.0.0",
             style = TextStyle(
                 fontFamily = GameFonts.GameFont,
                 fontSize = 10.sp,
-                color = Color.White.copy(alpha = 0.5f)
+                color = Color.White.copy(alpha = 0.3f)
             ),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         )
 
+        // Instrucciones
+        Text(
+            text = "USE ARROW KEYS TO MOVE • SPACE TO JUMP",
+            style = TextStyle(
+                fontFamily = GameFonts.GameFont,
+                fontSize = 10.sp,
+                color = Color(0xFF00FFFF).copy(alpha = 0.5f)
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
+
         // Diálogo de confirmación de salida
         if (showExitConfirmation) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.85f))
-            ) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "ARE YOU SURE\nYOU WANT TO EXIT?",
-                        style = TextStyle(
-                            fontFamily = GameFonts.GameFont,
-                            fontSize = 32.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
-                    MenuButton(
-                        text = "YES, EXIT",
-                        icon = "✓",
-                        onClick = onExit
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    MenuButton(
-                        text = "NO, STAY",
-                        icon = "✕",
-                        onClick = { showExitConfirmation = false }
-                    )
-                }
-            }
+            ExitConfirmationDialog(
+                onConfirm = onExit,
+                onDismiss = { showExitConfirmation = false }
+            )
         }
     }
 }
 
 /**
- * Botón del menú con estilo retro arcade.
+ * Grid de fondo estilo arcade.
  */
 @Composable
-private fun MenuButton(
+private fun ArcadeGrid() {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val gridSize = 40f
+        val lineColor = Color(0xFF00FFFF).copy(alpha = 0.05f)
+
+        // Líneas verticales
+        var x = 0f
+        while (x < size.width) {
+            drawLine(
+                color = lineColor,
+                start = Offset(x, 0f),
+                end = Offset(x, size.height),
+                strokeWidth = 1f
+            )
+            x += gridSize
+        }
+
+        // Líneas horizontales
+        var y = 0f
+        while (y < size.height) {
+            drawLine(
+                color = lineColor,
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = 1f
+            )
+            y += gridSize
+        }
+    }
+}
+
+/**
+ * Efecto scanlines CRT sutil.
+ */
+@Composable
+private fun CRTScanlines() {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val lineHeight = 3f
+        var y = 0f
+        while (y < size.height) {
+            drawLine(
+                color = Color.Black.copy(alpha = 0.1f),
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = 1f
+            )
+            y += lineHeight
+        }
+    }
+}
+
+/**
+ * Logo del juego animado.
+ */
+@Composable
+private fun AnimatedGameLogo() {
+    val infiniteTransition = rememberInfiniteTransition()
+    
+    // Animación de glow pulsante
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    // Animación de escala sutil
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.scale(scale)
+    ) {
+        // CAT JUMP
+        Text(
+            text = "CAT JUMP",
+            style = TextStyle(
+                fontFamily = GameFonts.GameFont,
+                fontSize = 64.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFFFD700),
+                shadow = Shadow(
+                    color = Color(0xFFFF6B00).copy(alpha = glowAlpha),
+                    blurRadius = 20f,
+                    offset = Offset.Zero
+                )
+            )
+        )
+
+        // BARRELS
+        Text(
+            text = "BARRELS",
+            style = TextStyle(
+                fontFamily = GameFonts.GameFont,
+                fontSize = 64.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFFFD700),
+                shadow = Shadow(
+                    color = Color(0xFFFF6B00).copy(alpha = glowAlpha),
+                    blurRadius = 20f,
+                    offset = Offset.Zero
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Subtítulo
+        Text(
+            text = "~ A Retro Arcade Adventure ~",
+            style = TextStyle(
+                fontFamily = GameFonts.GameFont,
+                fontSize = 12.sp,
+                color = Color(0xFF00FFFF),
+                shadow = Shadow(
+                    color = Color(0xFF00FFFF).copy(alpha = 0.5f),
+                    blurRadius = 8f
+                )
+            )
+        )
+    }
+}
+
+/**
+ * Botón de menú estilo arcade.
+ */
+@Composable
+private fun ArcadeMenuButton(
     text: String,
     icon: String,
+    color: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isPressed by remember { mutableStateOf(false) }
     var isHovered by remember { mutableStateOf(false) }
 
-    // Animación de escala al hover
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else if (isHovered) 1.08f else 1f,
+        targetValue = when {
+            isPressed -> 0.95f
+            isHovered -> 1.05f
+            else -> 1f
+        },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
         )
     )
 
+    val currentColor = when {
+        isPressed -> color.copy(alpha = 0.8f)
+        isHovered -> color
+        else -> color.copy(alpha = 0.7f)
+    }
+
     Box(
         modifier = modifier
-            .width(300.dp)
-            .height(65.dp)
+            .width(280.dp)
+            .height(56.dp)
             .scale(scale)
-            .border(
-                width = 4.dp,
-                brush = when {
-                    isPressed -> Brush.linearGradient(
-                        colors = listOf(Color(0xFFFF6B00), Color(0xFFFF0000))
-                    )
-                    isHovered -> Brush.linearGradient(
-                        colors = listOf(Color(0xFFFFD700), Color(0xFFFFA500))
-                    )
-                    else -> Brush.linearGradient(
-                        colors = listOf(Color.White, Color(0xFFCCCCCC))
-                    )
-                },
-                shape = RoundedCornerShape(12.dp)
-            )
             .background(
-                brush = when {
-                    isPressed -> Brush.verticalGradient(
-                        colors = listOf(Color(0xFF4A4A4A), Color(0xFF2A2A2A))
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color(0xFF1A1A2E),
+                        Color(0xFF2A2A4E),
+                        Color(0xFF1A1A2E)
                     )
-                    isHovered -> Brush.verticalGradient(
-                        colors = listOf(Color(0xFF333333), Color(0xFF1A1A1A))
+                ),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .border(
+                width = 3.dp,
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        currentColor.copy(alpha = 0.5f),
+                        currentColor,
+                        currentColor.copy(alpha = 0.5f)
                     )
-                    else -> Brush.verticalGradient(
-                        colors = listOf(Color(0xFF1A1A1A), Color(0xFF0A0A0A))
-                    )
-                },
-                shape = RoundedCornerShape(12.dp)
+                ),
+                shape = RoundedCornerShape(8.dp)
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -224,39 +356,29 @@ private fun MenuButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // Icono
             Text(
                 text = icon,
                 style = TextStyle(
-                    fontSize = 24.sp,
-                    color = when {
-                        isPressed -> Color(0xFFFF6B00)
-                        isHovered -> Color(0xFFFFD700)
-                        else -> Color(0xFF00FFFF)
-                    },
+                    fontSize = 20.sp,
+                    color = currentColor,
                     shadow = if (isHovered) Shadow(
-                        color = Color(0xFFFFD700).copy(alpha = 0.8f),
-                        blurRadius = 15f
+                        color = currentColor,
+                        blurRadius = 10f
                     ) else null
                 )
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Texto
             Text(
                 text = text,
                 style = TextStyle(
                     fontFamily = GameFonts.GameFont,
-                    fontSize = 20.sp,
-                    color = when {
-                        isPressed -> Color(0xFFFF6B00)
-                        isHovered -> Color(0xFFFFD700)
-                        else -> Color.White
-                    },
+                    fontSize = 18.sp,
+                    color = if (isHovered) Color.White else Color.White.copy(alpha = 0.9f),
                     fontWeight = FontWeight.Bold,
                     shadow = if (isHovered) Shadow(
-                        color = Color(0xFFFFD700).copy(alpha = 0.7f),
+                        color = currentColor,
                         blurRadius = 12f
                     ) else null
                 )
@@ -266,216 +388,63 @@ private fun MenuButton(
 }
 
 /**
- * Logo animado con efecto de brillo y bounce sutil
+ * Diálogo de confirmación de salida.
  */
 @Composable
-private fun AnimatedLogo() {
-    // Animación de bounce vertical
-    val infiniteTransition = rememberInfiniteTransition()
-    val offsetY by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    // Animación de pulso de brillo
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    // Animación de escala
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1.0f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    Column(
+private fun ExitConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Box(
         modifier = Modifier
-            .offset(y = offsetY.dp)
-            .scale(scale),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.9f))
     ) {
-        // Título principal con múltiples sombras para efecto 3D
-        Box(contentAlignment = Alignment.Center) {
-            // Sombra trasera (efecto 3D)
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = "CAT JUMP",
+                text = "EXIT GAME?",
                 style = TextStyle(
                     fontFamily = GameFonts.GameFont,
-                    fontSize = 72.sp,
-                    color = Color(0xFF8B4513),
+                    fontSize = 36.sp,
+                    color = Color(0xFFFF6B6B),
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                ),
-                modifier = Modifier.offset(x = 4.dp, y = 4.dp)
-            )
-            // Texto principal con glow
-            Text(
-                text = "CAT JUMP",
-                style = TextStyle(
-                    fontFamily = GameFonts.GameFont,
-                    fontSize = 72.sp,
-                    color = Color(0xFFFFD700),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
                     shadow = Shadow(
-                        color = Color(0xFFFF6B00).copy(alpha = glowAlpha),
-                        blurRadius = 30f,
-                        offset = Offset.Zero
+                        color = Color(0xFFFF6B6B).copy(alpha = 0.5f),
+                        blurRadius = 15f
                     )
                 )
             )
-        }
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Box(contentAlignment = Alignment.Center) {
-            // Sombra trasera
             Text(
-                text = "BARRELS",
+                text = "Are you sure you want to quit?",
                 style = TextStyle(
                     fontFamily = GameFonts.GameFont,
-                    fontSize = 72.sp,
-                    color = Color(0xFF8B4513),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                ),
-                modifier = Modifier.offset(x = 4.dp, y = 4.dp)
-            )
-            // Texto principal
-            Text(
-                text = "BARRELS",
-                style = TextStyle(
-                    fontFamily = GameFonts.GameFont,
-                    fontSize = 72.sp,
-                    color = Color(0xFFFFD700),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    shadow = Shadow(
-                        color = Color(0xFFFF6B00).copy(alpha = glowAlpha),
-                        blurRadius = 30f,
-                        offset = Offset.Zero
-                    )
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             )
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-        // Subtítulo
-        Text(
-            text = "~ A Retro Arcade Adventure ~",
-            style = TextStyle(
-                fontFamily = GameFonts.GameFont,
-                fontSize = 14.sp,
-                color = Color(0xFF00FFFF),
-                fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Center,
-                shadow = Shadow(
-                    color = Color(0xFF00FFFF).copy(alpha = 0.5f),
-                    blurRadius = 10f,
-                    offset = Offset.Zero
-                )
+            ArcadeMenuButton(
+                text = "YES, EXIT",
+                icon = "✓",
+                color = Color(0xFFFF6B6B),
+                onClick = onConfirm
             )
-        )
-    }
-}
 
-/**
- * Partículas flotantes decorativas en el fondo
- */
-@Composable
-private fun FloatingParticles() {
-    data class Particle(
-        val x: Float,
-        val y: Float,
-        val size: Float,
-        val speed: Float,
-        val alpha: Float,
-        val colorHue: Int // 0=gold, 1=cyan, 2=magenta
-    )
+            Spacer(modifier = Modifier.height(16.dp))
 
-    val particles = remember {
-        List(50) { // Más partículas
-            Particle(
-                x = Random.nextFloat(),
-                y = Random.nextFloat(),
-                size = Random.nextFloat() * 4f + 1f,
-                speed = Random.nextFloat() * 0.8f + 0.3f,
-                alpha = Random.nextFloat() * 0.4f + 0.3f,
-                colorHue = Random.nextInt(3)
-            )
-        }
-    }
-
-    var time by remember { mutableStateOf(0f) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(16) // ~60 FPS
-            time += 0.016f
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Partículas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            particles.forEach { particle ->
-                val x = size.width * particle.x
-                val y = (size.height * particle.y + time * particle.speed * 100f) % size.height
-
-                val color = when (particle.colorHue) {
-                    0 -> Color(0xFFFFD700) // Dorado
-                    1 -> Color(0xFF00FFFF) // Cian
-                    else -> Color(0xFFFF00FF) // Magenta
-                }.copy(alpha = particle.alpha * (0.7f + 0.3f * sin(time * 2f + particle.x * 10f)))
-
-                drawCircle(
-                    color = color,
-                    radius = particle.size,
-                    center = Offset(x, y)
-                )
-            }
-        }
-
-        // Efecto scanlines CRT
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val lineHeight = 4f
-            var y = 0f
-            while (y < size.height) {
-                drawLine(
-                    color = Color.Black.copy(alpha = 0.15f),
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
-                    strokeWidth = 2f
-                )
-                y += lineHeight
-            }
-        }
-
-        // Vignette en bordes para profundidad
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color.Black.copy(alpha = 0.6f)
-                    ),
-                    center = center,
-                    radius = size.maxDimension * 0.9f
-                )
+            ArcadeMenuButton(
+                text = "NO, STAY",
+                icon = "✕",
+                color = Color(0xFF00FF88),
+                onClick = onDismiss
             )
         }
     }
