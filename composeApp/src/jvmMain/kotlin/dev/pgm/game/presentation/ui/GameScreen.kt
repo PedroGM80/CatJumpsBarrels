@@ -18,7 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.pgm.game.audio.RetroSoundGenerator
+import dev.pgm.game.audio.SoundPlayer
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.input.InputHandler
 import dev.pgm.game.model.core.GameConstants
@@ -53,12 +53,12 @@ fun GameScreen(
     LaunchedEffect(viewModel) {
         viewModel.onPlaySound = { event ->
             when (event) {
-                GameViewModelComplete.SoundEvent.JUMP -> RetroSoundGenerator.playJump()
-                GameViewModelComplete.SoundEvent.SCORE -> RetroSoundGenerator.playScore()
-                GameViewModelComplete.SoundEvent.DEATH -> RetroSoundGenerator.playDeath()
-                GameViewModelComplete.SoundEvent.WIN -> RetroSoundGenerator.playWin()
-                GameViewModelComplete.SoundEvent.PAUSE -> RetroSoundGenerator.playPause()
-                GameViewModelComplete.SoundEvent.BARREL_THROW -> RetroSoundGenerator.playBarrelThrow()
+                GameViewModelComplete.SoundEvent.JUMP -> SoundPlayer.playJump()
+                GameViewModelComplete.SoundEvent.SCORE -> SoundPlayer.playScore()
+                GameViewModelComplete.SoundEvent.DEATH -> SoundPlayer.playDeath()
+                GameViewModelComplete.SoundEvent.WIN -> SoundPlayer.playWin()
+                GameViewModelComplete.SoundEvent.PAUSE -> SoundPlayer.playPause()
+                GameViewModelComplete.SoundEvent.BARREL_THROW -> SoundPlayer.playBarrelThrow()
             }
         }
     }
