@@ -29,29 +29,35 @@ A retro arcade platformer inspired by the Atari 2600 version of Donkey Kong, bui
 
 ## 🎮 Description
 
-Cat Jump Barrels is a nostalgic platformer where you control a cat who must dodge barrels thrown by a boss while climbing platforms and ladders to rescue a fish at the top. Built with modern Kotlin and Clean Architecture principles, featuring authentic 8-bit synthesized audio and retro graphics.
+Cat Jump Barrels is a nostalgic platformer where you control a cat who must dodge barrels thrown by a boss while climbing platforms and ladders to rescue a fish at the top. Built with modern Kotlin and Clean Architecture principles, featuring authentic synthesized audio and retro arcade visuals.
 
 ## ✨ Features
 
 ### Gameplay
 - **Classic platformer mechanics** with authentic retro feel
 - **Dynamic barrel physics** with ladder descent and platform rolling
+- **Progressive difficulty** - Barrel speed increases with each level
 - **Score system** with bonuses for jumping over barrels (+100 points)
 - **Life system** with 3 lives and temporary invincibility after damage
 - **Multiple platforms and ladders** for strategic gameplay
 - **Victory condition** by reaching the fish at the top (+1000 points)
 
 ### Audio
-- **🎵 8-bit synthesized sounds** - No WAV files, pure square wave synthesis
-- **Background music** - Catchy NES-style melody for the main menu
+- **🎵 Smooth synthesized music** - Triangle and sine wave synthesis for pleasant melodies
+- **ADSR envelopes** - Smooth attack, decay, sustain, release for professional sound
+- **Menu music** - Relaxed 100 BPM melody with melody, bass, and pad layers
 - **Sound effects** for jump, score, death, victory, pause, and barrel throws
-- **Retro chiptune** inspired by Super Mario Bros and Zelda classics
+- **Automatic music control** - Music stops when leaving menu
 
 ### UI & Menus
+- **Retro arcade UI** - Grid backgrounds, CRT scanlines, glow effects
+- **Animated titles** with pulsing glow effects
+- **Styled buttons** with hover/press animations and color accents
 - **Main menu** with New Game, High Scores, Credits, and Exit options
 - **High score system** - Save top 40 scores with player names (Room database)
+- **Credits screen** with compact card layout
+- **High score dialog** with trophy animation and styled input
 - **Quit confirmation** - Press ESC for quit menu during gameplay
-- **Credits screen** with attributions and technologies used
 - **Fullscreen scaling** - Game scales proportionally to fit any screen size
 
 ### Visuals
@@ -84,12 +90,15 @@ Cat Jump Barrels is a nostalgic platformer where you control a cat who must dodg
 4. Use ladders to climb between platforms
 5. Jump over barrels to earn 100 points each
 6. Reach the fish at the top to win and earn 1000 bonus points
-7. Compete for a spot in the top 40 high scores!
+7. Each level increases barrel speed - how far can you go?
+8. Compete for a spot in the top 40 high scores!
 
 ## 🎲 Game Mechanics
 
-- **Jump over barrels**: +100 points (triggers score popup and particles)
-- **Rescue the fish**: +1000 points
+- **Jump over barrels**: +100 points (destroys barrel, triggers particles)
+- **Rescue the fish**: +1000 points, advance to next level
+- **Level progression**: Barrel speed increases 15% per level
+- **Invincibility**: 2 seconds after death or reaching objective
 - **Lives**: 3 hearts with invincibility period after taking damage
 - **Barrel behavior**:
   - Random chance to descend ladders (20%)
@@ -173,12 +182,13 @@ CatJumpsBarrels/
 ├── composeApp/          # Main application module (JVM Desktop)
 │   └── src/jvmMain/
 │       ├── kotlin/dev/pgm/game/
-│       │   ├── audio/        # RetroSoundGenerator & MusicPlayer
+│       │   ├── audio/        # MusicPlayer & RetroSoundGenerator
 │       │   ├── di/           # Koin dependency injection
 │       │   ├── presentation/ # UI & rendering
+│       │   │   ├── navigation/ # NavigationGraph
 │       │   │   ├── renderer/ # GameRenderer (Canvas drawing)
 │       │   │   └── ui/       # Composable screens
-│       │   ├── resources/    # AnimationProvider (centralized sprite loading)
+│       │   ├── resources/    # AnimationProvider
 │       │   └── Game.kt       # Main entry point
 │       │
 │       └── composeResources/drawable/  # Sprite assets
@@ -200,27 +210,18 @@ CatJumpsBarrels/
 ├── domain/              # Business logic (Use Cases)
 │   └── src/commonMain/kotlin/dev/pgm/game/domain/
 │       ├── usecase/     # Game logic use cases
-│       │   ├── UpdatePlayerUseCase
-│       │   ├── UpdateBarrelsUseCase
-│       │   ├── SpawnBarrelUseCase
-│       │   ├── CheckCollisionsUseCase
-│       │   └── UpdateParticlesUseCase
 │       ├── factory/     # ParticleFactory
 │       └── di/          # Domain DI module
 │
 ├── data/                # Data persistence layer
-│   └── src/
-│       ├── commonMain/kotlin/dev/pgm/game/data/
-│       │   ├── repository/  # HighScoreRepository (interface)
-│       │   └── di/          # Data DI module
-│       └── jvmMain/kotlin/dev/pgm/game/data/
-│           ├── database/    # Room database
-│           └── repository/  # Repository implementations
+│   └── src/jvmMain/kotlin/dev/pgm/game/data/
+│       ├── database/    # Room database
+│       └── repository/  # Repository implementations
 │
 └── presentation/        # Shared presentation logic
     └── src/commonMain/kotlin/dev/pgm/game/presentation/
         ├── ui/          # MainMenu, Credits, HighScores screens
-        ├── viewmodel/   # GameViewModelComplete, MainMenuViewModel
+        ├── viewmodel/   # GameViewModelComplete
         └── theme/       # GameFonts & styling
 ```
 
@@ -231,7 +232,7 @@ CatJumpsBarrels/
 1. **Presentation Layer**
    - ViewModels (GameViewModelComplete, MainMenuViewModel)
    - UI Composables (GameScreen, MainMenuScreen, etc.)
-   - Navigation (NavigationGraph)
+   - Navigation (NavigationGraph with music control)
    - Input handling (InputHandler)
 
 2. **Domain Layer**
@@ -269,22 +270,22 @@ val gameModule = module {
 
 ## 🎵 Audio System
 
-### Synthesized Sound Effects
+### Music System (MusicPlayer)
+The menu features a pleasant synthesized melody:
+
+- **100 BPM tempo** - Relaxed and enjoyable
+- **Three layers**: Melody (triangle wave), Bass (sine wave), Pad (soft saw)
+- **ADSR envelopes** - Smooth attack/decay/sustain/release with smoothstep curves
+- **Pentatonic scale** - Always sounds harmonious
+- **Harmonic richness** - Subtle overtones for warmth
+- **Automatic control** - Stops when leaving menu, starts when entering
+
+### Sound Effects (RetroSoundGenerator)
 All sounds are generated programmatically using Java Sound API:
 
 - **Square wave synthesis** for authentic 8-bit sound
 - **Frequency sweeps** for jumps and deaths
-- **ADSR envelopes** for smooth attack and release
 - **No external audio files** - everything is synthesized in real-time
-
-### Background Music
-The menu features a catchy chiptune melody:
-
-- **120 BPM tempo** with bouncy rhythm
-- **Arpeggios** (C-E-G patterns) typical of NES games
-- **Walking bass** with sixteenth note rhythms
-- **Melodic structure**: A-A'-B-End for catchiness
-- **Inspired by** Super Mario Bros and The Legend of Zelda
 
 ## 🎨 Technologies
 
@@ -295,7 +296,7 @@ The menu features a catchy chiptune melody:
 - **Gradle** 8.x - Build system and dependency management
 
 ### Architecture & Patterns
-- **Clean Architecture** - Separation of concerns with layers (Presentation, Domain, Data)
+- **Clean Architecture** - Separation of concerns with layers
 - **MVVM Pattern** - ViewModel-based state management
 - **Repository Pattern** - Data abstraction layer
 - **Use Case Pattern** - Single responsibility business logic
@@ -313,55 +314,25 @@ The menu features a catchy chiptune melody:
 
 ### Audio
 - **Java Sound API** - Low-level audio synthesis
-- **Custom DSP** - Square wave generator for 8-bit sounds
-- **Programmatic Music** - Chiptune composition engine
+- **Custom DSP** - Triangle, sine, and square wave generators
+- **ADSR Envelopes** - Professional sound shaping
+- **Programmatic Music** - Multi-layer composition engine
 
 ## 🎓 Development
 
 ### Key Development Features
 
 **Code Organization**:
-- **Modular architecture** - 5 independent Gradle modules (composeApp, core, model, domain, data, presentation)
+- **Modular architecture** - Independent Gradle modules
 - **Clean separation** - Clear boundaries between layers
 - **Type-safe** - Kotlin's null safety throughout
 - **SOLID principles** - Single responsibility, dependency inversion
 
 **Performance Optimizations**:
-- **Asynchronous loading** - Sprites loaded in parallel with coroutines
+- **Lightweight UI** - No particle effects in menus for smooth performance
 - **Efficient rendering** - Canvas-based drawing with minimal allocations
 - **State caching** - AnimationProvider loads resources once
 - **Native compilation** - Optimized JVM bytecode
-
-**Developer Experience**:
-- **Hot reload** - Fast iteration with Compose preview
-- **Type-safe navigation** - Compile-time route checking
-- **Dependency injection** - Koin for testability and modularity
-- **Reactive state** - StateFlow for predictable UI updates
-- **Comprehensive logging** - Debug output for game state transitions
-
-### Graphics & Animation System
-
-**AnimationProvider** - Centralized sprite management:
-```kotlin
-// Loads all animations asynchronously at startup
-AnimationProvider.loadAllAnimations()
-
-// Provides animations to renderers
-val catAnimations = AnimationProvider.getCatAnimations()
-val bossAnimations = AnimationProvider.getBossAnimations()
-```
-
-**Rendering Pipeline**:
-- **Compose Canvas** for high-performance 2D rendering
-- **Frame-based animations** with configurable timing (ANIMATION_FRAME_DURATION)
-- **Transform system** for sprite rotation, scaling, and flipping
-- **Particle physics** with gravity, velocity, and alpha decay
-- **Adaptive scaling** maintains 600x700 aspect ratio on any screen size
-
-**Animation Details**:
-- Cat: 72 frames across 7 states (idle:10, run:8, jump:8, fall:8, climb:6, hurt:10, dead:10)
-- Boss: 7 frames across 2 states (idle:3, throwing:3, take:1)
-- All sprites loaded via Compose Multiplatform Resources (Res.readBytes)
 
 ## 🐛 Troubleshooting
 
@@ -387,13 +358,6 @@ val bossAnimations = AnimationProvider.getBossAnimations()
 - Check file permissions in `~/.catjumpsbarrels/`
 - Room database initializes on first run
 
-### Debug Mode
-
-Enable debug output by running with logging:
-```bash
-./gradlew :composeApp:run --info
-```
-
 ## 📝 Credits
 
 ### Attributions
@@ -412,11 +376,24 @@ Enable debug output by running with logging:
 
 ## 📋 Recent Changes
 
-### Version 1.1.0 (Latest)
+### Version 1.2.0 (Latest)
+- **Improved music system** - Smooth triangle/sine waves instead of harsh square waves
+- **Pleasant menu melody** - 100 BPM with melody, bass, and pad layers
+- **Music control** - Automatically stops when leaving main menu
+- **Victory improvements** - Player gets invincibility when reaching objective
+- **Progressive difficulty** - Barrel speed increases with each level
+- **Redesigned UI** - All menu screens with retro arcade style
+  - Grid backgrounds and CRT scanlines
+  - Animated titles with glow effects
+  - Styled buttons with color accents
+  - Compact credits layout
+  - Improved high score dialog with trophy animation
+- **Performance** - Removed particle effects from menus
+
+### Version 1.1.0
 - **Refactored animation system** - Centralized sprite loading with AnimationProvider
-- **Normalized asset filenames** - Renamed 72 sprite files for consistency (cat_idle_01.png, etc.)
-- **Fixed barrel spawning** - Corrected animation frame check for barrel generation
-- **Eliminated code duplication** - Removed redundant ImageLoader classes
+- **Normalized asset filenames** - Renamed 72 sprite files for consistency
+- **Fixed barrel spawning** - Corrected animation frame check
 - **Improved resource management** - Async loading with Compose Multiplatform Resources
 
 ### Version 1.0.0
@@ -430,10 +407,9 @@ Enable debug output by running with logging:
 This is a personal learning project demonstrating:
 - **Clean Architecture** implementation in Kotlin
 - **Compose Multiplatform** game development
-- **Audio synthesis** and chiptune music composition
+- **Audio synthesis** and music composition
 - **Retro game design** patterns and mechanics
 - **Modular architecture** with dependency injection (Koin)
-- **Asynchronous resource loading** with Kotlin Coroutines
 
 Feel free to fork and experiment with the code!
 
@@ -443,7 +419,7 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Version**: 1.1.0
+**Version**: 1.2.0
 **Last Updated**: January 2026
 
 Developed with ❤️ using Kotlin and Compose Multiplatform
