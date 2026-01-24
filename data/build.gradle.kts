@@ -2,21 +2,21 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    // Add serialization plugin
     alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
     jvm()
+    
+    // Preparado para Web
+    // wasmJs {
+    //     browser()
+    // }
 
     sourceSets {
-        jvmMain.dependencies {
+        commonMain.dependencies {
             implementation(project(":model"))
             implementation(project(":domain"))
-
-            // Compose para ImageBitmap y recursos
-            implementation(compose.ui)
-            implementation(compose.components.resources)
 
             // Koin
             implementation(libs.koin.core)
@@ -26,6 +26,12 @@ kotlin {
             
             // Serialization
             implementation(libs.kotlinx.serialization.json)
+        }
+        
+        jvmMain.dependencies {
+            // Compose para ImageBitmap y recursos (si se necesita)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
         }
     }
 }
