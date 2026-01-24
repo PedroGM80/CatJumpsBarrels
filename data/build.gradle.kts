@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -8,10 +10,10 @@ plugins {
 kotlin {
     jvm()
     
-    // Preparado para Web
-    // wasmJs {
-    //     browser()
-    // }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -32,6 +34,10 @@ kotlin {
             // Compose para ImageBitmap y recursos (si se necesita)
             implementation(compose.ui)
             implementation(compose.components.resources)
+        }
+        
+        wasmJsMain.dependencies {
+            // Dependencias específicas de Web si se necesitan
         }
     }
 }
