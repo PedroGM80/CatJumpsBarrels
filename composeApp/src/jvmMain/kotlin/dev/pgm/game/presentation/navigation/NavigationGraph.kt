@@ -2,12 +2,13 @@ package dev.pgm.game.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import dev.pgm.game.audio.MusicPlayer
-import dev.pgm.game.audio.RetroSoundGenerator
+import dev.pgm.game.audio.MusicController
+import dev.pgm.game.audio.SoundPlayer
 import dev.pgm.game.presentation.ui.CreditsScreen
 import dev.pgm.game.presentation.ui.GameScreen
 import dev.pgm.game.presentation.ui.HighScoresScreen
@@ -31,31 +32,31 @@ fun NavigationGraph(
         composable(Screen.MainMenu.route) {
             // Iniciar música del menú cuando se entra
             DisposableEffect(Unit) {
-                MusicPlayer.playMenuMusic()
+                MusicController.playMenuMusic()
                 onDispose {
-                    MusicPlayer.stopMusic()
+                    MusicController.stopMusic()
                 }
             }
 
             MainMenuScreen(
                 onNavigateToGame = {
-                    RetroSoundGenerator.playMenuConfirm()
-                    MusicPlayer.stopMusic()
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
                     navController.navigate(Screen.Game.route)
                 },
                 onNavigateToHighScores = {
-                    RetroSoundGenerator.playMenuConfirm()
-                    MusicPlayer.stopMusic()
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
                     navController.navigate(Screen.HighScores.route)
                 },
                 onNavigateToCredits = {
-                    RetroSoundGenerator.playMenuConfirm()
-                    MusicPlayer.stopMusic()
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
                     navController.navigate(Screen.Credits.route)
                 },
                 onExit = {
-                    RetroSoundGenerator.playMenuConfirm()
-                    MusicPlayer.stopMusic()
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
                     onExitApplication()
                 }
             )
@@ -63,6 +64,11 @@ fun NavigationGraph(
 
         // Pantalla de Juego
         composable(Screen.Game.route) {
+            // Asegurar que la música esté parada al entrar
+            LaunchedEffect(Unit) {
+                MusicController.stopMusic()
+            }
+            
             GameScreen(
                 onNavigateBack = {
                     navController.popBackStack(Screen.MainMenu.route, inclusive = false)
@@ -77,6 +83,11 @@ fun NavigationGraph(
 
         // Pantalla de High Scores
         composable(Screen.HighScores.route) {
+            // Asegurar que la música esté parada al entrar
+            LaunchedEffect(Unit) {
+                MusicController.stopMusic()
+            }
+            
             HighScoresScreen(
                 onNavigateBack = {
                     navController.popBackStack()
@@ -86,6 +97,11 @@ fun NavigationGraph(
 
         // Pantalla de Créditos
         composable(Screen.Credits.route) {
+            // Asegurar que la música esté parada al entrar
+            LaunchedEffect(Unit) {
+                MusicController.stopMusic()
+            }
+            
             CreditsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
