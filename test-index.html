@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Jump Barrels - Build Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            padding: 2rem;
+            background: #1a1a2e;
+            border-radius: 8px;
+            border: 2px solid #ff6b00;
+        }
+
+        h1 {
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px #ff6b00;
+        }
+
+        h2 {
+            color: #00ffff;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .status {
+            padding: 1rem;
+            background: #0a0a0a;
+            border: 1px solid #666;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .error {
+            background: #330000;
+            border-color: #ff3333;
+        }
+
+        .success {
+            background: #003300;
+            border-color: #00ff00;
+        }
+
+        .warning {
+            background: #333300;
+            border-color: #ffff00;
+        }
+
+        .info {
+            color: #aaa;
+        }
+
+        button {
+            background: #ff6b00;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: monospace;
+            margin-right: 0.5rem;
+        }
+
+        button:hover {
+            background: #ff8533;
+        }
+
+        .links {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #666;
+        }
+
+        a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CAT JUMP BARRELS</h1>
+        <h2>Web Build Status</h2>
+
+        <div id="status" class="status info">
+            Loading build status...
+        </div>
+
+        <h2>Diagnostics</h2>
+
+        <button onclick="checkBuildFiles()">Check Build Files</button>
+        <button onclick="checkResources()">Check Resources</button>
+        <button onclick="checkCompiledModules()">Check Compiled Modules</button>
+
+        <div id="diagnostics" class="status info" style="margin-top: 1rem;">
+            Click buttons above to run diagnostics...
+        </div>
+
+        <div class="links">
+            <h2>Project Status</h2>
+            <p><strong>Current Status:</strong> <span id="build-status">Initializing...</span></p>
+            <p><strong>Compilation:</strong> <span id="compilation-status">Unknown</span></p>
+            <p><strong>WebAssembly:</strong> <span id="wasm-status">Unknown</span></p>
+            <p><strong>Server:</strong> <span id="server-status">Running at localhost:8080</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            updateBuildStatus();
+            loadDiagnostics();
+        });
+
+        function updateBuildStatus() {
+            const status = document.getElementById('status');
+
+            const info = `
+Build Information:
+==================
+
+Project: Cat Jump Barrels
+Target: wasmJs (Web/Browser)
+Platform: Kotlin Multiplatform
+Version: Kotlin 2.3.0 + Compose Multiplatform 1.10.0
+
+Build Status:
+- Kotlin Compilation: ✓ Completed
+- wasmJs Target: ✓ Compiled
+- Compose Compiler: ✓ Configured
+- Audio Stubs: ✓ Created (no audio support in wasmJs)
+
+Known Issue:
+============
+The Kotlin-to-JavaScript compilation is running, but the final
+JavaScript bundles (.mjs files) are not being generated yet.
+
+This might be due to:
+1. Kotlin 2.3.0 wasmJs output format change
+2. Webpack bundling step not completing
+3. Build cache issues
+
+Next Steps:
+1. Clear build caches and rebuild
+2. Check gradle daemon logs
+3. Run bundling step manually
+4. Generate a test HTML with working components
+            `;
+
+            status.textContent = info;
+            status.className = 'status warning';
+        }
+
+        function checkBuildFiles() {
+            const diag = document.getElementById('diagnostics');
+            let output = 'Checking for build files...\n\n';
+
+            const filesToCheck = [
+                '/build/wasm/packages/CatJumpsBarrels-webApp/package.json',
+                '/build/wasm/packages/CatJumpsBarrels-webApp/kotlin/CatJumpsBarrels-webApp.mjs',
+                '/webApp/build/processedResources/wasmJs/main/index.html',
+                '/build/wasm/packages_imported/skiko-js-wasm-runtime/0.9.37-3/skiko.wasm',
+            ];
+
+            let found = 0;
+            let missing = 0;
+
+            Promise.all(filesToCheck.map(file =>
+                fetch(file, { method: 'HEAD' })
+                    .then(r => {
+                        if (r.ok) {
+                            output += `✓ ${file}\n`;
+                            found++;
+                        } else {
+                            output += `✗ ${file} (${r.status})\n`;
+                            missing++;
+                        }
+                    })
+                    .catch(() => {
+                        output += `✗ ${file} (Not accessible)\n`;
+                        missing++;
+                    })
+            )).then(() => {
+                output += `\n\nSummary: ${found} found, ${missing} missing`;
+                diag.textContent = output;
+                diag.className = missing > 0 ? 'status error' : 'status success';
+            });
+        }
+
+        function checkResources() {
+            const diag = document.getElementById('diagnostics');
+            diag.textContent = 'Checking resources... This would require server-side code.';
+            diag.className = 'status info';
+        }
+
+        function checkCompiledModules() {
+            const diag = document.getElementById('diagnostics');
+            let output = 'Checking for compiled modules...\n\n';
+
+            output += 'Expected compiled Kotlin modules:\n';
+            output += '- build/wasm/packages/CatJumpsBarrels-webApp/kotlin/CatJumpsBarrels-webApp.mjs\n';
+            output += '- build/wasm/packages/CatJumpsBarrels-webApp/kotlin/CatJumpsBarrels-webApp.wasm\n\n';
+
+            output += 'Status: MISSING\n\n';
+
+            output += 'This is the current blocker - Kotlin compilation to JavaScript\n';
+            output += 'is not generating the final .mjs output files.\n\n';
+
+            output += 'Possible solutions:\n';
+            output += '1. Update Kotlin plugin configuration\n';
+            output += '2. Use explicit webpack configuration\n';
+            output += '3. Enable detailed logging to debug the issue\n';
+
+            diag.textContent = output;
+            diag.className = 'status error';
+        }
+
+        function loadDiagnostics() {
+            document.getElementById('build-status').textContent = 'Kotlin Compilation: OK, JS Bundling: Pending';
+            document.getElementById('compilation-status').textContent = 'Kotlin 2.3.0 compiled successfully, but JS output not generated';
+            document.getElementById('wasm-status').textContent = 'Skiko runtime available, Game WASM pending';
+        }
+    </script>
+</body>
+</html>

@@ -18,16 +18,7 @@ kotlin {
     }
 
     sourceSets {
-        wasmJsMain.dependencies {
-            // Módulos del proyecto
-            implementation(project(":core"))
-            implementation(project(":model"))
-            implementation(project(":domain"))
-            implementation(project(":input"))
-            implementation(project(":data"))
-            implementation(project(":presentation"))
-            implementation(project(":composeApp"))
-
+        commonMain.dependencies {
             // Compose
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -37,13 +28,24 @@ kotlin {
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
-            
+
             // DateTime para game loop
             implementation(libs.kotlinx.datetime)
 
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+        }
+
+        wasmJsMain.dependencies {
+            // Módulos del proyecto
+            implementation(project(":core"))
+            implementation(project(":model"))
+            implementation(project(":domain"))
+            implementation(project(":input"))
+            implementation(project(":data"))
+            implementation(project(":presentation"))
+            implementation(project(":composeApp"))
         }
     }
 }
