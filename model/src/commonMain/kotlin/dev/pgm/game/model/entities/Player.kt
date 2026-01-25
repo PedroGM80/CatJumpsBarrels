@@ -2,6 +2,7 @@ package dev.pgm.game.model.entities
 
 import androidx.compose.ui.geometry.Offset
 import dev.pgm.game.core.utils.GameRect
+import kotlinx.datetime.Clock
 
 /**
  * Dirección horizontal del jugador.
@@ -64,7 +65,7 @@ data class Player(
      * Usado para evitar daño tras respawnear.
      */
     val isInvincible: Boolean
-        get() = System.currentTimeMillis() < invincibleUntil
+        get() = Clock.System.now().toEpochMilliseconds() < invincibleUntil
 
     /**
      * Hitbox reducida del jugador para colisiones más precisas.
