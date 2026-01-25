@@ -1,5 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -25,19 +25,12 @@ kotlin {
             implementation(project(":data"))
             implementation(project(":presentation"))
 
-            // Compose
+            // Compose Core (compatible con wasmJs)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
-            implementation(libs.androidx.lifecycle.runtime.compose)
-
-            // Coil
-            implementation(libs.coil.compose)
-            implementation(libs.coil.compose.core)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
@@ -45,19 +38,22 @@ kotlin {
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
-
-            // Navigation
-            implementation(libs.navigation.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(compose.components.uiToolingPreview)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.compose.core)
+            implementation(libs.navigation.compose)
             implementation(libs.kotlinx.coroutines.swing)
         }
         wasmJsMain.dependencies {
-            // Dependencias específicas de Web
+            // Web-specific Compose dependencies
         }
     }
 }
