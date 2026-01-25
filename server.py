@@ -8,11 +8,25 @@ import socketserver
 import os
 import sys
 import json
+import socket
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 
-PORT = 8080
-BIND_ADDRESS = "0.0.0.0"
+# Try different ports
+PORTS = [8000, 3000, 5000, 8080, 9000, 7000]
+BIND_ADDRESS = "127.0.0.1"
+
+def find_free_port():
+    """Find a free port from the list"""
+    for port in PORTS:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(('127.0.0.1', port))
+                return port
+        except OSError:
+            continue
+    return None
 
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     """Custom HTTP handler that properly serves WASM and ESM modules"""
@@ -94,24 +108,37 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 def start_server():
     """Start the HTTP server"""
 
+    # Find a free port
+    port = find_free_port()
+    if port is None:
+        print("ERROR: Could not find a free port!")
+        print(f"Tried ports: {PORTS}")
+        sys.exit(1)
+
     print(f"\n{'='*60}")
     print("Cat Jump Barrels - Web Server")
     print(f"{'='*60}")
     print(f"\nServer running at:")
-    print(f"  http://localhost:{PORT}")
-    print(f"  http://127.0.0.1:{PORT}")
+    print(f"  http://localhost:{port}")
+    print(f"  http://127.0.0.1:{port}")
     print(f"\nWorking directory: {os.getcwd()}")
     print(f"\nPress Ctrl+C to stop the server\n")
 
     # Create socket server
     handler = CustomHTTPRequestHandler
-    with socketserver.TCPServer((BIND_ADDRESS, PORT), handler) as httpd:
-        print(f"Listening on {BIND_ADDRESS}:{PORT}...\n")
-        try:
+    socketserver.TCPServer.allow_reuse_address = True
+
+    try:
+        with socketserver.TCPServer((BIND_ADDRESS, port), handler) as httpd:
+            print(f"Listening on {BIND_ADDRESS}:{port}...\n")
             httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n\nServer stopped.")
-            sys.exit(0)
+    except KeyboardInterrupt:
+        print("\n\nServer stopped.")
+        sys.exit(0)
+    except OSError as e:
+        print(f"ERROR: {e}")
+        print("Could not start server. The port might be in use.")
+        sys.exit(1)
 
 if __name__ == '__main__':
     start_server()

@@ -12,9 +12,23 @@ import json
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 import glob
+import socket
 
-PORT = 8080
+# Try different ports
+PORTS = [8000, 3000, 5000, 8080, 9000, 7000]
 BASE_DIR = os.getcwd()
+
+def find_free_port():
+    """Find a free port from the list"""
+    for port in PORTS:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(('127.0.0.1', port))
+                return port
+        except OSError:
+            continue
+    return None
 
 class DiagnosticHandler(http.server.SimpleHTTPRequestHandler):
     """Diagnostic HTTP handler"""
@@ -202,22 +216,36 @@ class DiagnosticHandler(http.server.SimpleHTTPRequestHandler):
 def main():
     """Start the diagnostic server"""
 
+    # Find a free port
+    port = find_free_port()
+    if port is None:
+        print("ERROR: Could not find a free port!")
+        print(f"Tried ports: {PORTS}")
+        sys.exit(1)
+
     print("\n" + "="*70)
     print("  Cat Jump Barrels - Diagnostic Web Server")
     print("="*70)
     print(f"\nServer running at:")
-    print(f"  http://localhost:{PORT}")
-    print(f"  http://127.0.0.1:{PORT}\n")
+    print(f"  http://localhost:{port}")
+    print(f"  http://127.0.0.1:{port}\n")
     print(f"Base directory: {BASE_DIR}\n")
     print("Press Ctrl+C to stop\n")
     print("="*70 + "\n")
 
-    with socketserver.TCPServer(("0.0.0.0", PORT), DiagnosticHandler) as httpd:
-        try:
+    # Allow reuse of address
+    socketserver.TCPServer.allow_reuse_address = True
+
+    try:
+        with socketserver.TCPServer(("127.0.0.1", port), DiagnosticHandler) as httpd:
             httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n\nServer stopped.")
-            sys.exit(0)
+    except KeyboardInterrupt:
+        print("\n\nServer stopped.")
+        sys.exit(0)
+    except OSError as e:
+        print(f"ERROR: {e}")
+        print("Could not start server. The port might be in use.")
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
