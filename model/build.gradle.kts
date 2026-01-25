@@ -25,7 +25,10 @@ kotlin {
 
             // Coroutines para CatAnimation
             implementation(libs.kotlinx.coroutines.core)
-            
+
+            // DateTime para timestamps multiplatform
+            implementation(libs.kotlinx.datetime)
+
             // Serialization
             implementation(libs.kotlinx.serialization.json)
         }
