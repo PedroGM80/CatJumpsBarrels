@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
  * JVM implementation of BaseViewModel using androidx.lifecycle.ViewModel
  */
 actual open class BaseViewModel : ViewModel() {
-    val coroutineScope: CoroutineScope
+    actual val coroutineScope: CoroutineScope
         get() = viewModelScope
 
     actual override fun onCleared() {
