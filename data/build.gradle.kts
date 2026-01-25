@@ -37,7 +37,8 @@ kotlin {
         }
         
         wasmJsMain.dependencies {
-            // Dependencias específicas de Web si se necesitan
+            // Browser APIs para localStorage
+            implementation(libs.kotlinx.browser)
         }
     }
 }

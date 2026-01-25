@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import dev.pgm.game.presentation.theme.GameFonts
+import dev.pgm.game.presentation.utils.formatWithCommas
 
 /**
  * Diálogo para ingresar el nombre del jugador cuando logra un high score.
@@ -114,7 +115,7 @@ fun HighScoreDialog(
                         .padding(horizontal = 24.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = "%,d".format(score),
+                        text = score.formatWithCommas(),
                         style = TextStyle(
                             fontFamily = GameFonts.GameFont,
                             fontSize = 36.sp,

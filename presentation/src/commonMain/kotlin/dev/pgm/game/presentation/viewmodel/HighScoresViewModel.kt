@@ -1,7 +1,5 @@
 package dev.pgm.game.presentation.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dev.pgm.game.domain.usecase.GetTop40ScoresUseCase
 import dev.pgm.game.model.entities.HighScore
 import dev.pgm.game.presentation.mapper.toHighScore
@@ -16,7 +14,7 @@ import kotlinx.coroutines.launch
  */
 class HighScoresViewModel(
     private val getTop40ScoresUseCase: GetTop40ScoresUseCase
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<HighScoresUiState>(HighScoresUiState.Loading)
     val uiState: StateFlow<HighScoresUiState> = _uiState.asStateFlow()
@@ -29,7 +27,7 @@ class HighScoresViewModel(
      * Carga los high scores desde el repositorio.
      */
     fun loadHighScores() {
-        viewModelScope.launch {
+        coroutineScope.launch {
             _uiState.value = HighScoresUiState.Loading
             try {
                 val scores = getTop40ScoresUseCase().map { it.toHighScore() }

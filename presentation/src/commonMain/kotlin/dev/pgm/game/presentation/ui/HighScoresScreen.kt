@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.pgm.game.model.entities.HighScore
 import dev.pgm.game.presentation.theme.GameFonts
+import dev.pgm.game.presentation.utils.formatWithCommas
 import dev.pgm.game.presentation.viewmodel.HighScoresUiState
 import dev.pgm.game.presentation.viewmodel.HighScoresViewModel
 import org.koin.compose.koinInject
@@ -374,7 +375,7 @@ private fun HighScoreRow(
 
         // Score
         Text(
-            text = "%,d".format(highScore.score),
+            text = highScore.score.formatWithCommas(),
             style = TextStyle(
                 fontFamily = GameFonts.GameFont,
                 fontSize = 12.sp,

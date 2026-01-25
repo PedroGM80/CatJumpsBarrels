@@ -1,7 +1,5 @@
 package dev.pgm.game.presentation.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dev.pgm.game.domain.usecase.*
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
@@ -13,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 /**
  * Constantes de animación (número de frames por estado).
@@ -47,7 +46,7 @@ class GameViewModelComplete(
     private val updateParticlesUseCase: UpdateParticlesUseCase,
     private val checkHighScoreUseCase: CheckHighScoreUseCase,
     private val saveHighScoreUseCase: SaveHighScoreUseCase
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _gameState = MutableStateFlow(
         GameState.initial(androidx.compose.ui.unit.IntSize(800, 700))
@@ -105,7 +104,7 @@ class GameViewModelComplete(
 
             // 5. Spawner barriles
             val stateBeforeSpawn = newState
-            newState = spawnBarrelUseCase(newState, System.currentTimeMillis())
+            newState = spawnBarrelUseCase(newState, Clock.System.now().toEpochMilliseconds())
 
             // Sonido de barril lanzado
             if (newState.barrels.size > stateBeforeSpawn.barrels.size) {
@@ -203,7 +202,7 @@ class GameViewModelComplete(
      * Muestra el diálogo de high score si califica.
      */
     fun checkIfHighScore() {
-        viewModelScope.launch {
+        coroutineScope.launch {
             val currentScore = _gameState.value.score
             if (currentScore > 0) {
                 val isHigh = checkHighScoreUseCase(currentScore)
@@ -219,7 +218,7 @@ class GameViewModelComplete(
      * Guarda el high score con el nombre del jugador.
      */
     fun saveHighScore(playerName: String, onSaved: () -> Unit) {
-        viewModelScope.launch {
+        coroutineScope.launch {
             saveHighScoreUseCase(playerName, _pendingScore.value)
             _showHighScoreDialog.value = false
             onSaved()
@@ -288,7 +287,7 @@ class GameViewModelComplete(
     private fun checkAndRespawnPlayer(state: GameState): GameState {
         if (state.playerDeathTimestamp == 0L) return state
 
-        val timeSinceDeath = System.currentTimeMillis() - state.playerDeathTimestamp
+        val timeSinceDeath = Clock.System.now().toEpochMilliseconds() - state.playerDeathTimestamp
         if (timeSinceDeath < 1500) return state
 
         val platforms = state.platforms
@@ -307,7 +306,7 @@ class GameViewModelComplete(
                 isOnGround = true,
                 isClimbing = false,
                 animationFrame = 0,
-                invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
+                invincibleUntil = Clock.System.now().toEpochMilliseconds() + GameConstants.INVINCIBILITY_TIME
             ),
             playerDeathTimestamp = 0L
         )
@@ -354,7 +353,7 @@ class GameViewModelComplete(
                     isOnGround = true,
                     isClimbing = false,
                     animationFrame = 0,
-                    invincibleUntil = System.currentTimeMillis() + GameConstants.INVINCIBILITY_TIME
+                    invincibleUntil = Clock.System.now().toEpochMilliseconds() + GameConstants.INVINCIBILITY_TIME
                 )
             )
         } else {
@@ -365,7 +364,7 @@ class GameViewModelComplete(
     private fun cleanupPopups(state: GameState): GameState {
         val popup = state.lastScorePopup ?: return state
 
-        val elapsed = System.currentTimeMillis() - popup.createdAt
+        val elapsed = Clock.System.now().toEpochMilliseconds() - popup.createdAt
         return if (elapsed > GameConstants.SCORE_POPUP_LIFETIME_MS) {
             state.copy(lastScorePopup = null)
         } else {
