@@ -1,0 +1,16 @@
+{
+  "name": "cat-jump-barrels-web",
+  "version": "1.0.0",
+  "description": "Cat Jump Barrels - Web Version (Kotlin/Wasm)",
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack serve --mode development",
+    "prod": "webpack --mode production"
+  },
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "dependencies": {}
+}

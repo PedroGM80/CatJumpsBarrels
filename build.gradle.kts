@@ -6,3 +6,15 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
 }
+
+// Configure JavaScript/Webpack for offline builds
+allprojects {
+    afterEvaluate {
+        // Skip Yarn setup when using npm
+        tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask> {
+            onlyIf {
+                project.properties.containsKey("skipNpmInstall").not()
+            }
+        }
+    }
+}
