@@ -23,6 +23,22 @@ import dev.pgm.game.model.core.GameState
 import dev.pgm.game.model.entities.*
 import dev.pgm.game.model.utils.Particle
 
+private fun DrawScope.drawHeart(color: Color) {
+    val w = size.width
+    val h = size.height
+    // Dos círculos arriba
+    drawCircle(color = color, radius = w * 0.25f, center = Offset(w * 0.3f, h * 0.3f))
+    drawCircle(color = color, radius = w * 0.25f, center = Offset(w * 0.7f, h * 0.3f))
+    // Triángulo abajo
+    val path = Path().apply {
+        moveTo(w * 0.05f, h * 0.4f)
+        lineTo(w * 0.5f, h * 0.95f)
+        lineTo(w * 0.95f, h * 0.4f)
+        close()
+    }
+    drawPath(path, color)
+}
+
 object WebGameColors {
     val background = Color(0xFF1A1A2E)
     val platform = Color(0xFF8B4513)
@@ -92,7 +108,14 @@ private fun BoxScope.WebHUD(state: GameState) {
         Spacer(modifier = Modifier.height(8.dp))
         Row {
             repeat(state.lives) {
-                Text("\u2764", color = WebGameColors.textLives, fontSize = 20.sp)
+                Box(
+                    modifier = Modifier.size(20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.size(16.dp)) {
+                        drawHeart(WebGameColors.textLives)
+                    }
+                }
                 Spacer(modifier = Modifier.width(4.dp))
             }
         }

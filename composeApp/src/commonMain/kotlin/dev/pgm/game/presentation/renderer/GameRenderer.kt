@@ -115,7 +115,9 @@ private fun BoxScope.HUD(state: GameState) {
         Spacer(modifier = Modifier.height(GameConstants.HUD_SPACER_HEIGHT.dp))
         Row {
             repeat(state.lives) {
-                Text("♥", style = TextStyle(color = GameColors.textLives, fontSize = GameConstants.HUD_LIVES_TEXT_SIZE.sp))
+                Canvas(modifier = Modifier.size(GameConstants.HUD_LIVES_TEXT_SIZE.dp)) {
+                    drawHeart(GameColors.textLives)
+                }
                 Spacer(modifier = Modifier.width(4.dp))
             }
         }
@@ -338,4 +340,18 @@ private fun DrawScope.drawScorePopup(popup: ScorePopup) {
     if (alpha > 0) {
         drawCircle(color = Color.Black.copy(alpha = alpha * 0.25f), radius = 8f, center = Offset(popup.position.x + 2f, popup.position.y - yOffset + 2f))
     }
+}
+
+private fun DrawScope.drawHeart(color: Color) {
+    val w = size.width
+    val h = size.height
+    drawCircle(color = color, radius = w * 0.25f, center = Offset(w * 0.3f, h * 0.3f))
+    drawCircle(color = color, radius = w * 0.25f, center = Offset(w * 0.7f, h * 0.3f))
+    val path = androidx.compose.ui.graphics.Path().apply {
+        moveTo(w * 0.05f, h * 0.4f)
+        lineTo(w * 0.5f, h * 0.95f)
+        lineTo(w * 0.95f, h * 0.4f)
+        close()
+    }
+    drawPath(path, color)
 }

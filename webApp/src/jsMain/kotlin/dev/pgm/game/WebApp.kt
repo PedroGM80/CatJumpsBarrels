@@ -3,7 +3,7 @@ package dev.pgm.game
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.* // Adding Material imports
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,14 +14,12 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp // Added for dp unit
+import androidx.compose.ui.unit.dp
 import dev.pgm.game.audio.MusicController
 import dev.pgm.game.audio.SoundPlayer
 import dev.pgm.game.input.GameInput
-import dev.pgm.game.model.core.GameConstants
-import dev.pgm.game.model.core.GameState
-import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
 import dev.pgm.game.presentation.renderer.GameRenderer
+import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
 import dev.pgm.game.resources.AnimationProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -136,12 +134,30 @@ fun WebGameScreen(onBack: () -> Unit) {
     val focusRequester = remember { FocusRequester() }
     var animationsLoaded by remember { mutableStateOf(AnimationProvider.isLoaded()) }
     
-    // Cargar animaciones si no están cargadas
+    // Cargar animaciones primero
     LaunchedEffect(Unit) {
         if (!AnimationProvider.isLoaded()) {
             AnimationProvider.loadAllAnimations()
             animationsLoaded = true
         }
+    }
+    
+    // Mostrar pantalla de carga mientras no estén listas las animaciones
+    if (!animationsLoaded) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color(0xFF1A1A2E)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = Color(0xFFFFD700))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Loading assets...",
+                    style = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                )
+            }
+        }
+        return
     }
     
     // Conectar sonidos al ViewModel
@@ -158,14 +174,17 @@ fun WebGameScreen(onBack: () -> Unit) {
         }
     }
     
-    LaunchedEffect(Unit) {
-        viewModel.resetForNewGame()
-        focusRequester.requestFocus()
+    LaunchedEffect(animationsLoaded) {
+        if (animationsLoaded) {
+            viewModel.resetForNewGame()
+            focusRequester.requestFocus()
+        }
     }
     
-    // Game loop
+    // Game loop - solo inicia cuando las animaciones están cargadas
     val currentInput by rememberUpdatedState(input)
-    LaunchedEffect(Unit) {
+    LaunchedEffect(animationsLoaded) {
+        if (!animationsLoaded) return@LaunchedEffect
         var lastTime = 0L
         while (isActive) {
             val currentTime = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
@@ -207,7 +226,7 @@ fun WebGameScreen(onBack: () -> Unit) {
                 }
             }
     ) {
-        // Game renderer
+        // Game renderer con sprites
         GameRenderer(
             state = gameState,
             modifier = Modifier.fillMaxSize()
