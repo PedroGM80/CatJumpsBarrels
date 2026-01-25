@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -21,18 +21,12 @@ kotlin {
             implementation(project(":domain"))
             implementation(project(":input"))
 
-            // Compose completo
+            // Compose Core (compatible con wasmJs)
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-
-            // Lifecycle
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
-            implementation(libs.androidx.lifecycle.runtime.compose)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
@@ -41,21 +35,26 @@ kotlin {
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
-
-            // Coil (para imágenes)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.compose.core)
-
-            // Navigation
-            implementation(libs.navigation.compose)
         }
 
         jvmMain.dependencies {
+            // Lifecycle (JVM only)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+
+            // Coil (for images - JVM only)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.compose.core)
+
+            // Navigation (JVM only)
+            implementation(libs.navigation.compose)
+
+            // Coroutines
             implementation(libs.kotlinx.coroutines.swing)
         }
-        
+
         wasmJsMain.dependencies {
-            // Dependencias específicas de Web si se necesitan
+            // Web-specific dependencies
         }
     }
 }
