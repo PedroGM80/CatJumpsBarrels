@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -10,8 +8,7 @@ plugins {
 kotlin {
     jvm()
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
     }
 
@@ -20,8 +17,8 @@ kotlin {
             implementation(project(":core"))
 
             // Compose UI para Offset, Color, ImageBitmap, IntSize
-            implementation(compose.ui)
-            implementation(compose.runtime)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.runtime)
 
             // Coroutines para CatAnimation
             implementation(libs.kotlinx.coroutines.core)

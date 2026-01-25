@@ -6,7 +6,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -164,14 +168,10 @@ fun HighScoreDialog(
                         color = Color.White,
                         textAlign = TextAlign.Center
                     ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color(0xFFFFD700),
                         unfocusedBorderColor = Color(0xFF4A4A6A),
-                        cursorColor = Color(0xFFFFD700),
-                        focusedContainerColor = Color(0xFF2A2A4A).copy(alpha = 0.5f),
-                        unfocusedContainerColor = Color(0xFF2A2A4A).copy(alpha = 0.3f)
+                        cursorColor = Color(0xFFFFD700)
                     ),
                     shape = RoundedCornerShape(8.dp)
                 )

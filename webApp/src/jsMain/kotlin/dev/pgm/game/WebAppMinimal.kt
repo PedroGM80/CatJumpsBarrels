@@ -2,7 +2,7 @@ package dev.pgm.game
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import androidx.compose.material.* // Importing all Material components
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp // Added for dp unit
 
 /**
  * Minimal Composable for testing basic Compose/wasmJs setup
@@ -24,7 +25,7 @@ fun MinimalApp() {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.sp.value.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = "CAT JUMP BARRELS",
@@ -35,7 +36,7 @@ fun MinimalApp() {
                 )
             )
 
-            Spacer(modifier = Modifier.height(24.sp.value.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = "Web Version - Loading...",
@@ -45,15 +46,8 @@ fun MinimalApp() {
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.sp.value.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Game compiled for wasmJs",
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-            )
         }
     }
 }

@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -9,8 +7,7 @@ plugins {
 kotlin {
     jvm()
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
     }
 
@@ -21,7 +18,7 @@ kotlin {
             implementation(project(":input"))
 
             // Compose UI para Offset, Color
-            implementation(compose.ui)
+            implementation(libs.compose.ui)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)

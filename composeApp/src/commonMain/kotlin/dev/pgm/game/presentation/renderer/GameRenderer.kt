@@ -4,7 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +30,7 @@ import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
 import dev.pgm.game.presentation.theme.GameFonts
 import dev.pgm.game.resources.AnimationProvider
+import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
@@ -49,7 +50,6 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
     val platformPainter = painterResource(Res.drawable.platform)
     val ironTexturePainter = painterResource(Res.drawable.iron_texture)
 
-    // Get animations from provider
     val catAnimations = if (AnimationProvider.isLoaded()) AnimationProvider.getCatAnimations() else emptyMap()
     val bossAnimations = if (AnimationProvider.isLoaded()) AnimationProvider.getBossAnimations() else emptyMap()
     val barrelEmptyBitmap = if (AnimationProvider.isLoaded()) AnimationProvider.getBarrelEmptyBitmap() else null
@@ -62,9 +62,7 @@ fun GameRenderer(state: GameState, modifier: Modifier = Modifier) {
             contentScale = ContentScale.Crop
         )
         
-        Box(
-            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f))
-        )
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
         
         Canvas(modifier = Modifier.fillMaxSize()) {
             val screenWidth = size.width
@@ -128,22 +126,12 @@ private fun BoxScope.HUD(state: GameState) {
     ) {
         Text(
             "CONTROLS",
-            style = TextStyle(
-                color = Color(0xFFFFD700),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = GameFonts.GameFont
-            )
+            style = TextStyle(color = Color(0xFFFFD700), fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = GameFonts.GameFont)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            "WASD/Arrows: Move  •  SPACE: Jump  •  P: Pause",
-            style = TextStyle(
-                color = Color(0xFFFFFFFF),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontFamily = GameFonts.GameFont
-            )
+            "WASD/Arrows: Move • SPACE: Jump • P: Pause",
+            style = TextStyle(color = Color(0xFFFFFFFF), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, fontFamily = GameFonts.GameFont)
         )
     }
 }
@@ -193,7 +181,8 @@ private fun DrawScope.drawPlayer(
     val frameIndex = player.animationFrame % animation.size
     val image = animation[frameIndex]
 
-    val alpha = if (player.isInvincible && (System.currentTimeMillis() / 150) % 2 == 0L) 0.5f else 1f
+    val currentTime = Clock.System.now().toEpochMilliseconds()
+    val alpha = if (player.isInvincible && (currentTime / 150) % 2 == 0L) 0.5f else 1f
 
     withTransform({
         translate(left = player.position.x, top = player.position.y)
@@ -262,10 +251,7 @@ private fun DrawScope.drawBarrelStackBehindBoss(dk: Boss, barrelImage: ImageBitm
 
 private fun DrawScope.drawPrincess(winObjetive: WinObjetive, painter: Painter) {
     withTransform({
-        translate(
-            left = winObjetive.position.x,
-            top = winObjetive.position.y
-        )
+        translate(left = winObjetive.position.x, top = winObjetive.position.y)
     }) {
         with(painter) {
             draw(Size(winObjetive.size, winObjetive.size))
@@ -345,7 +331,8 @@ private fun DrawScope.drawParticle(particle: Particle) {
 }
 
 private fun DrawScope.drawScorePopup(popup: ScorePopup) {
-    val elapsed = System.currentTimeMillis() - popup.createdAt
+    val currentTime = Clock.System.now().toEpochMilliseconds()
+    val elapsed = currentTime - popup.createdAt
     val yOffset = elapsed * GameConstants.SCORE_POPUP_Y_SPEED
     val alpha = 1f - (elapsed / GameConstants.SCORE_POPUP_LIFETIME_MS)
     if (alpha > 0) {

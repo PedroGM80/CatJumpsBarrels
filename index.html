@@ -146,8 +146,8 @@
                 console.log('Location:', window.location.href);
 
                 // Import the webApp module
-                const { root } = await import('./webApp-bundle.mjs');
-                console.log('Module loaded successfully');
+                const { root } = await import('./webApp/build/kotlin-webpack/js/developmentExecutable/catjumpbarrels.js');
+                console.log('catjumpbarrels.js loaded successfully');
 
                 // Hide loading and show game
                 hideLoading();

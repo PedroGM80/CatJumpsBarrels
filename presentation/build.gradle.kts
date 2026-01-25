@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -9,8 +7,7 @@ plugins {
 kotlin {
     jvm()
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
     }
 
@@ -21,12 +18,12 @@ kotlin {
             implementation(project(":domain"))
             implementation(project(":input"))
 
-            // Compose Core (compatible con wasmJs)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
+            // Compose Core (Multiplatform)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
@@ -53,8 +50,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
         }
 
-        wasmJsMain.dependencies {
-            // Web-specific dependencies
+        jsMain.dependencies {
+            // No specific dependencies needed here for core compose after moving them to commonMain
         }
     }
 }
+

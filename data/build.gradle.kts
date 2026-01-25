@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -8,8 +6,7 @@ plugins {
 kotlin {
     jvm()
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
     }
 
@@ -32,7 +29,7 @@ kotlin {
             // JVM-specific dependencies if needed
         }
         
-        wasmJsMain.dependencies {
+        jsMain.dependencies {
             // Browser APIs para localStorage
             implementation(libs.kotlinx.browser)
         }

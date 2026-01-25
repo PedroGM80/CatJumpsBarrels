@@ -3,7 +3,7 @@ package dev.pgm.game
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import androidx.compose.material.* // Adding Material imports
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,12 +14,15 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp // Added for dp unit
 import dev.pgm.game.audio.MusicController
 import dev.pgm.game.audio.SoundPlayer
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.model.core.GameConstants
 import dev.pgm.game.model.core.GameState
 import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
+import dev.pgm.game.presentation.renderer.GameRenderer
+import dev.pgm.game.resources.AnimationProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.koin.compose.koinInject
@@ -131,6 +134,15 @@ fun WebGameScreen(onBack: () -> Unit) {
     
     var input by remember { mutableStateOf(GameInput()) }
     val focusRequester = remember { FocusRequester() }
+    var animationsLoaded by remember { mutableStateOf(AnimationProvider.isLoaded()) }
+    
+    // Cargar animaciones si no están cargadas
+    LaunchedEffect(Unit) {
+        if (!AnimationProvider.isLoaded()) {
+            AnimationProvider.loadAllAnimations()
+            animationsLoaded = true
+        }
+    }
     
     // Conectar sonidos al ViewModel
     LaunchedEffect(viewModel) {
@@ -182,6 +194,9 @@ fun WebGameScreen(onBack: () -> Unit) {
                         if (event.key == Key.R && (gameState.isGameOver || gameState.isWon)) {
                             viewModel.restart()
                         }
+                        if (event.key == Key.P) {
+                            viewModel.togglePause()
+                        }
                         true
                     }
                     KeyEventType.KeyUp -> {
@@ -192,62 +207,11 @@ fun WebGameScreen(onBack: () -> Unit) {
                 }
             }
     ) {
-        // TODO: Integrar GameRenderer cuando esté disponible en commonMain
-        // Por ahora mostramos información básica del estado
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Score: ${gameState.score}",
-                color = Color.White,
-                fontSize = 24.sp
-            )
-            Text(
-                text = "Lives: ${gameState.lives}",
-                color = Color.White,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "Level: ${gameState.level}",
-                color = Color.White,
-                fontSize = 18.sp
-            )
-            
-            if (gameState.isGameOver) {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    text = "GAME OVER",
-                    color = Color.Red,
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Press R to restart or ESC for menu",
-                    color = Color.White,
-                    fontSize = 14.sp
-                )
-            }
-            
-            if (gameState.isWon) {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    text = "LEVEL COMPLETE!",
-                    color = Color.Green,
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Press ESC to return to menu",
-                color = Color.White.copy(alpha = 0.5f),
-                fontSize = 12.sp
-            )
-        }
+        // Game renderer
+        GameRenderer(
+            state = gameState,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

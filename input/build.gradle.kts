@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -9,15 +7,14 @@ plugins {
 kotlin {
     jvm()
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
     }
 
     sourceSets {
         commonMain.dependencies {
             // Compose UI para KeyEvent (en InputHandler)
-            implementation(compose.ui)
+            implementation(libs.compose.ui)
         }
     }
 }

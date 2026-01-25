@@ -13,23 +13,18 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.skia.Image
 
 /**
- * Provee las animaciones del juego usando Compose Multiplatform Resources.
- * Usa Res.readBytes() para cargar los sprites como ImageBitmap.
+ * Implementación JVM del AnimationProvider.
+ * Usa Skia para cargar imágenes.
  */
-object AnimationProvider {
+actual object AnimationProvider {
 
     private var catAnimations: Map<PlayerState, List<ImageBitmap>>? = null
     private var bossAnimations: Map<BossState, List<ImageBitmap>>? = null
     private var barrelEmptyBitmap: ImageBitmap? = null
 
-    /**
-     * Carga todas las animaciones de forma asíncrona.
-     * Debe llamarse una vez al inicio de la aplicación.
-     */
     @OptIn(ExperimentalResourceApi::class)
-    suspend fun loadAllAnimations() = withContext(Dispatchers.Default) {
+    actual suspend fun loadAllAnimations() = withContext(Dispatchers.Default) {
         coroutineScope {
-            // Cargar animaciones del gato en paralelo
             val idleDeferred = async { loadCatFrames("idle", 10) }
             val runDeferred = async { loadCatFrames("run", 8) }
             val jumpDeferred = async { loadCatFrames("jump", 8) }
@@ -38,11 +33,9 @@ object AnimationProvider {
             val deadDeferred = async { loadCatFrames("dead", 10) }
             val hurtDeferred = async { loadCatFrames("hurt", 10) }
 
-            // Cargar animaciones del boss en paralelo
             val bossIdleDeferred = async { loadBossFrames("idle", 3) }
             val bossThrowDeferred = async { loadBossFrames("throw", 3) }
 
-            // Cargar barrel empty
             val barrelDeferred = async { loadImage("drawable/barrel_empty.png") }
 
             catAnimations = mapOf(
@@ -96,17 +89,17 @@ object AnimationProvider {
         return Image.makeFromEncoded(bytes).toComposeImageBitmap()
     }
 
-    fun getCatAnimations(): Map<PlayerState, List<ImageBitmap>> {
+    actual fun getCatAnimations(): Map<PlayerState, List<ImageBitmap>> {
         return catAnimations ?: error("Animations not loaded. Call loadAllAnimations() first.")
     }
 
-    fun getBossAnimations(): Map<BossState, List<ImageBitmap>> {
+    actual fun getBossAnimations(): Map<BossState, List<ImageBitmap>> {
         return bossAnimations ?: error("Animations not loaded. Call loadAllAnimations() first.")
     }
 
-    fun getBarrelEmptyBitmap(): ImageBitmap {
+    actual fun getBarrelEmptyBitmap(): ImageBitmap {
         return barrelEmptyBitmap ?: error("Animations not loaded. Call loadAllAnimations() first.")
     }
 
-    fun isLoaded(): Boolean = catAnimations != null && bossAnimations != null && barrelEmptyBitmap != null
+    actual fun isLoaded(): Boolean = catAnimations != null && bossAnimations != null && barrelEmptyBitmap != null
 }

@@ -7,8 +7,7 @@ plugins {
 }
 
 kotlin {
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser {
             commonWebpackConfig {
                 outputFileName = "catjumpbarrels.js"
@@ -20,11 +19,11 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Compose
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
@@ -37,7 +36,7 @@ kotlin {
             implementation(libs.koin.compose)
         }
 
-        wasmJsMain.dependencies {
+        jsMain.dependencies {
             // Módulos del proyecto
             implementation(project(":core"))
             implementation(project(":model"))

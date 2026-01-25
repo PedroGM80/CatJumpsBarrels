@@ -1,6 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -10,8 +8,7 @@ plugins {
 kotlin {
     jvm()
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
     }
     
@@ -25,15 +22,18 @@ kotlin {
             implementation(project(":data"))
             implementation(project(":presentation"))
 
-            // Compose Core (compatible con wasmJs)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
+            // Compose Core (Multiplatform)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
+
+            // DateTime
+            implementation(libs.kotlinx.datetime)
 
             // Koin
             implementation(libs.koin.core)
@@ -44,7 +44,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.coil.compose)
@@ -52,8 +52,8 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.coroutines.swing)
         }
-        wasmJsMain.dependencies {
-            // Web-specific Compose dependencies
+        jsMain.dependencies {
+            // No specific dependencies needed here for core compose after moving them to commonMain
         }
     }
 }
