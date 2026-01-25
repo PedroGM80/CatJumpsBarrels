@@ -26,6 +26,9 @@ kotlin {
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
 
+            // DateTime para timestamps multiplatform
+            implementation(libs.kotlinx.datetime)
+
             // Koin for DI
             implementation(libs.koin.core)
         }

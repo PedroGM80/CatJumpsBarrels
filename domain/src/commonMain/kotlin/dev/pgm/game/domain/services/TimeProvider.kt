@@ -1,8 +1,10 @@
 package dev.pgm.game.domain.services
 
+import kotlinx.datetime.Clock
+
 /**
  * Interface for providing time information.
- * Allows for testable time-dependent logic by abstracting System.currentTimeMillis()
+ * Allows for testable time-dependent logic by abstracting Clock.System
  *
  * Following Dependency Inversion Principle (SOLID)
  */
@@ -14,8 +16,8 @@ interface TimeProvider {
 }
 
 /**
- * Default implementation using System.currentTimeMillis()
+ * Default implementation using Clock.System (multiplatform)
  */
 class SystemTimeProvider : TimeProvider {
-    override fun currentTimeMillis(): Long = System.currentTimeMillis()
+    override fun currentTimeMillis(): Long = Clock.System.now().toEpochMilliseconds()
 }
