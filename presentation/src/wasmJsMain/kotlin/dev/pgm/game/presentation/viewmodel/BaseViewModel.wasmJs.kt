@@ -10,7 +10,7 @@ import kotlinx.coroutines.cancel
  */
 actual open class BaseViewModel {
     private val job = SupervisorJob()
-    protected val coroutineScope: CoroutineScope = CoroutineScope(job)
+    val coroutineScope: CoroutineScope = CoroutineScope(job)
 
     actual open fun onCleared() {
         job.cancel()

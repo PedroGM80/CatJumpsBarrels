@@ -4,7 +4,7 @@ kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.7.1"
 kotlinx-datetime = "0.6.0"
-kotlinx-browser = "0.4.1"
+kotlinx-browser = "0.3.1"
 
 # Compose
 composeMultiplatform = "1.10.0"
