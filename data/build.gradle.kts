@@ -2,8 +2,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -31,9 +29,7 @@ kotlin {
         }
         
         jvmMain.dependencies {
-            // Compose para ImageBitmap y recursos (si se necesita)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
+            // JVM-specific dependencies if needed
         }
         
         wasmJsMain.dependencies {
