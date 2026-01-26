@@ -1,14 +1,15 @@
 package dev.pgm.game.domain.usecase
 
 import dev.pgm.game.domain.repository.HighScoreRepository
+import dev.pgm.game.domain.services.TimeProvider
 import dev.pgm.game.model.dto.HighScoreDto
-import kotlinx.datetime.Clock
 
 /**
  * Caso de uso para guardar un nuevo high score.
  */
 class SaveHighScoreUseCase(
-    private val highScoreRepository: HighScoreRepository
+    private val highScoreRepository: HighScoreRepository,
+    private val timeProvider: TimeProvider
 ) {
     suspend operator fun invoke(playerName: String, score: Int) {
         val currentScores = highScoreRepository.getHighScores().toMutableList()
@@ -16,7 +17,7 @@ class SaveHighScoreUseCase(
             HighScoreDto(
                 playerName = playerName,
                 score = score,
-                timestamp = Clock.System.now().toEpochMilliseconds()
+                timestamp = timeProvider.currentTimeMillis()
             )
         )
         highScoreRepository.saveHighScores(currentScores)

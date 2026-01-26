@@ -176,11 +176,11 @@ fun WebGameScreen(
         if (!animationsLoaded) return@LaunchedEffect
         var lastTime = 0L
         while (isActive) {
-            val currentTime = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+            val currentTime = js("Date.now()").unsafeCast<Double>().toLong()
             if (lastTime == 0L) lastTime = currentTime
             val deltaTime = (currentTime - lastTime) / 1000f
             lastTime = currentTime
-            
+
             viewModel.tick(deltaTime.coerceAtMost(0.05f), currentInput)
             delay(16)
         }

@@ -12,7 +12,7 @@ import org.koin.dsl.module
  */
 val domainModule = module {
     // Services (Singletons - abstracciones para testabilidad)
-    single<TimeProvider> { SystemTimeProvider() }
+    single<TimeProvider> { systemTimeProvider() }
     single<RandomProvider> { DefaultRandomProvider() }
 
     // Factories

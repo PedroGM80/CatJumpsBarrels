@@ -163,7 +163,8 @@ private fun BoxScope.WebPauseScreen() {
 }
 
 private fun DrawScope.drawPlayerSimple(player: Player) {
-    val alpha = if (player.isInvincible && (kotlinx.datetime.Clock.System.now().toEpochMilliseconds() / 150) % 2 == 0L) 0.5f else 1f
+    val currentTime = js("Date.now()").unsafeCast<Double>().toLong()
+    val alpha = if (player.isInvincible && (currentTime / 150) % 2 == 0L) 0.5f else 1f
     withTransform({
         translate(left = player.position.x, top = player.position.y)
         if (player.direction == Direction.LEFT) {
