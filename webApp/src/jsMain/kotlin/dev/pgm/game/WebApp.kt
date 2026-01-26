@@ -115,6 +115,7 @@ fun WebGameScreen(
     val showHighScoreDialog by viewModel.showHighScoreDialog.collectAsState()
     
     var input by remember { mutableStateOf(GameInput()) }
+    var showQuitMenu by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     var animationsLoaded by remember { mutableStateOf(AnimationProvider.isLoaded()) }
     
@@ -198,13 +199,25 @@ fun WebGameScreen(
                 when (event.type) {
                     KeyEventType.KeyDown -> {
                         input = handleKeyDown(event.key, input)
+                        
+                        // Escape: mostrar/ocultar menú de salida
                         if (event.key == Key.Escape) {
-                            onBack()
+                            val willShowMenu = !showQuitMenu
+                            showQuitMenu = willShowMenu
+                            if (willShowMenu && !gameState.isPaused) {
+                                viewModel.togglePause()
+                            } else if (!willShowMenu && gameState.isPaused) {
+                                viewModel.togglePause()
+                            }
                         }
+                        
+                        // R para reiniciar cuando game over
                         if (event.key == Key.R && gameState.isGameOver) {
                             viewModel.restart()
                         }
-                        if (event.key == Key.P) {
+                        
+                        // P para pausar (solo si no hay menú de salida)
+                        if (event.key == Key.P && !showQuitMenu) {
                             viewModel.togglePause()
                         }
                         true
@@ -224,7 +237,7 @@ fun WebGameScreen(
         )
         
         // Botón de retorno al menú (visible cuando termina el juego)
-        if (gameState.isGameOver) {
+        if (gameState.isGameOver && !showQuitMenu) {
             Button(
                 onClick = onBack,
                 modifier = Modifier
@@ -240,6 +253,108 @@ fun WebGameScreen(
                     fontFamily = GameFonts.GameFont,
                     fontWeight = FontWeight.Bold
                 )
+            }
+        }
+        
+        // Menú de salida (Escape)
+        if (showQuitMenu) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.85f))
+            ) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "PAUSED",
+                        style = TextStyle(
+                            color = Color(0xFFFFD700),
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = GameFonts.GameFont
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(40.dp))
+                    
+                    // Botón Continuar
+                    Button(
+                        onClick = {
+                            showQuitMenu = false
+                            if (gameState.isPaused) {
+                                viewModel.togglePause()
+                            }
+                            focusRequester.requestFocus()
+                        },
+                        modifier = Modifier.width(220.dp).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF4CAF50),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "CONTINUE",
+                            fontFamily = GameFonts.GameFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Botón Reiniciar
+                    Button(
+                        onClick = {
+                            showQuitMenu = false
+                            viewModel.restart()
+                            focusRequester.requestFocus()
+                        },
+                        modifier = Modifier.width(220.dp).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF2196F3),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "RESTART",
+                            fontFamily = GameFonts.GameFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Botón Salir al menú
+                    Button(
+                        onClick = onBack,
+                        modifier = Modifier.width(220.dp).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFFFF5252),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "QUIT TO MENU",
+                            fontFamily = GameFonts.GameFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    Text(
+                        "Press ESC to resume",
+                        style = TextStyle(
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontSize = 12.sp,
+                            fontFamily = GameFonts.GameFont
+                        )
+                    )
+                }
             }
         }
     }
