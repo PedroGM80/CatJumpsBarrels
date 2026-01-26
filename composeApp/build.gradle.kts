@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    jvm()
+    jvm("desktop")
     
     js {
         browser()
@@ -25,7 +25,7 @@ kotlin {
             // Compose Core (Multiplatform)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
-            implementation(libs.compose.material)
+            implementation(libs.compose.material) // Material 2 for commonMain
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
 
@@ -42,15 +42,21 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.compose.ui.tooling.preview)
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
-            implementation(libs.androidx.lifecycle.runtime.compose)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.compose.core)
-            implementation(libs.navigation.compose)
-            implementation(libs.kotlinx.coroutines.swing)
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.compose.material3)
+                implementation(libs.compose.ui.tooling.preview)
+                implementation(libs.androidx.lifecycle.viewmodel.compose)
+                implementation(libs.androidx.lifecycle.runtime.compose)
+                implementation(libs.coil.compose)
+                implementation(libs.coil.compose.core)
+                implementation(libs.navigation.compose)
+                implementation(libs.kotlinx.coroutines.swing)
+                // DateTime - MUST be implementation (not runtimeOnly) because model uses jvm() 
+                // while composeApp uses jvm("desktop"), causing transitive deps to not resolve
+                implementation(libs.kotlinx.datetime)
+            }
         }
         jsMain.dependencies {
             // No specific dependencies needed here for core compose after moving them to commonMain

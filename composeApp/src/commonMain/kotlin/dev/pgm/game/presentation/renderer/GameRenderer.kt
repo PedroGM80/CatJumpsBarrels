@@ -30,7 +30,7 @@ import dev.pgm.game.model.utils.Particle
 import dev.pgm.game.model.utils.ScorePopup
 import dev.pgm.game.presentation.theme.GameFonts
 import dev.pgm.game.resources.AnimationProvider
-import kotlinx.datetime.Clock
+import dev.pgm.game.common.currentTimeMillis
 import org.jetbrains.compose.resources.painterResource
 
 object GameColors {
@@ -183,7 +183,7 @@ private fun DrawScope.drawPlayer(
     val frameIndex = player.animationFrame % animation.size
     val image = animation[frameIndex]
 
-    val currentTime = Clock.System.now().toEpochMilliseconds()
+    val currentTime = currentTimeMillis()
     val alpha = if (player.isInvincible && (currentTime / 150) % 2 == 0L) 0.5f else 1f
 
     withTransform({
@@ -333,11 +333,11 @@ private fun DrawScope.drawParticle(particle: Particle) {
 }
 
 private fun DrawScope.drawScorePopup(popup: ScorePopup) {
-    val currentTime = Clock.System.now().toEpochMilliseconds()
+    val currentTime = currentTimeMillis()
     val elapsed = currentTime - popup.createdAt
-    val yOffset = elapsed * GameConstants.SCORE_POPUP_Y_SPEED
-    val alpha = 1f - (elapsed / GameConstants.SCORE_POPUP_LIFETIME_MS)
-    if (alpha > 0) {
+    val yOffset = elapsed.toFloat() * GameConstants.SCORE_POPUP_Y_SPEED
+    val alpha = 1f - (elapsed.toFloat() / GameConstants.SCORE_POPUP_LIFETIME_MS.toFloat())
+    if (alpha > 0f) {
         drawCircle(color = Color.Black.copy(alpha = alpha * 0.25f), radius = 8f, center = Offset(popup.position.x + 2f, popup.position.y - yOffset + 2f))
     }
 }

@@ -1,7 +1,7 @@
 package dev.pgm.game.model.utils
 
 import androidx.compose.ui.geometry.Offset
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 data class ScorePopup(
     val position: Offset,

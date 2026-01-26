@@ -11,7 +11,7 @@ actual open class BaseViewModel : ViewModel() {
     actual val coroutineScope: CoroutineScope
         get() = viewModelScope
 
-    actual override fun onCleared() {
+    actual public override fun onCleared() {
         super.onCleared()
     }
 }

@@ -2,7 +2,7 @@ package dev.pgm.game.model.entities
 
 import androidx.compose.ui.geometry.Offset
 import dev.pgm.game.core.utils.GameRect
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 /**
  * Dirección horizontal del jugador.
