@@ -19,6 +19,9 @@ import dev.pgm.game.audio.MusicController
 import dev.pgm.game.audio.SoundPlayer
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.presentation.renderer.GameRenderer
+import dev.pgm.game.presentation.ui.MainMenuScreen
+import dev.pgm.game.presentation.ui.HighScoresScreen
+import dev.pgm.game.presentation.ui.CreditsScreen
 import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
 import dev.pgm.game.resources.AnimationProvider
 import kotlinx.coroutines.delay
@@ -26,103 +29,75 @@ import kotlinx.coroutines.isActive
 import org.koin.compose.koinInject
 
 /**
- * Aplicación web principal - versión simplificada sin navegación compleja.
+ * Aplicación web principal con navegación completa.
  */
 @Composable
 fun WebApp() {
     var currentScreen by remember { mutableStateOf(Screen.MENU) }
     
     when (currentScreen) {
-        Screen.MENU -> WebMainMenu(
-            onStartGame = { currentScreen = Screen.GAME }
-        )
+        Screen.MENU -> {
+            // Iniciar música del menú
+            LaunchedEffect(Unit) {
+                MusicController.playMenuMusic()
+            }
+            DisposableEffect(Unit) {
+                onDispose {
+                    MusicController.stopMusic()
+                }
+            }
+            
+            MainMenuScreen(
+                onNavigateToGame = {
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
+                    currentScreen = Screen.GAME
+                },
+                onNavigateToHighScores = {
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
+                    currentScreen = Screen.HIGH_SCORES
+                },
+                onNavigateToCredits = {
+                    SoundPlayer.playMenuConfirm()
+                    MusicController.stopMusic()
+                    currentScreen = Screen.CREDITS
+                },
+                onExit = {
+                    // En web no podemos cerrar la ventana, volvemos al menú
+                    SoundPlayer.playMenuSelect()
+                }
+            )
+        }
+        
         Screen.GAME -> WebGameScreen(
-            onBack = { currentScreen = Screen.MENU }
+            onBack = { 
+                currentScreen = Screen.MENU 
+            }
         )
+        
+        Screen.HIGH_SCORES -> {
+            HighScoresScreen(
+                onNavigateBack = {
+                    SoundPlayer.playMenuSelect()
+                    currentScreen = Screen.MENU
+                }
+            )
+        }
+        
+        Screen.CREDITS -> {
+            CreditsScreen(
+                onNavigateBack = {
+                    SoundPlayer.playMenuSelect()
+                    currentScreen = Screen.MENU
+                }
+            )
+        }
     }
 }
 
 enum class Screen {
-    MENU, GAME
-}
-
-@Composable
-fun WebMainMenu(onStartGame: () -> Unit) {
-    val focusRequester = remember { FocusRequester() }
-    
-    LaunchedEffect(Unit) {
-        MusicController.playMenuMusic()
-        focusRequester.requestFocus()
-    }
-    
-    DisposableEffect(Unit) {
-        onDispose {
-            MusicController.stopMusic()
-        }
-    }
-    
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0D0D1A))
-            .focusRequester(focusRequester)
-            .focusable()
-            .onKeyEvent { event ->
-                if (event.type == KeyEventType.KeyDown) {
-                    when (event.key) {
-                        Key.Enter, Key.Spacebar -> {
-                            SoundPlayer.playMenuConfirm()
-                            MusicController.stopMusic()
-                            onStartGame()
-                            true
-                        }
-                        else -> false
-                    }
-                } else false
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "CAT JUMP",
-                style = TextStyle(
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFFD700)
-                )
-            )
-            Text(
-                text = "BARRELS",
-                style = TextStyle(
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFFD700)
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(48.dp))
-            
-            Text(
-                text = "Press ENTER or SPACE to start",
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    color = Color(0xFF00FFFF)
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                text = "Controls: Arrow Keys / WASD to move, SPACE to jump",
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-            )
-        }
-    }
+    MENU, GAME, HIGH_SCORES, CREDITS
 }
 
 @Composable
