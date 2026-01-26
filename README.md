@@ -111,6 +111,7 @@ Cat Jump Barrels is a nostalgic platformer where you control a cat who must dodg
 - **JDK 17** or higher
 - **Gradle 8.x**
 - **OS**: Windows, macOS, or Linux
+- **Browser**: Modern browser with WebGL support (for web version)
 
 ## 🚀 Installation and Execution
 
@@ -137,6 +138,21 @@ cd CatJumpsBarrels
 gradlew.bat :composeApp:run
 ```
 
+### Run Web Version
+
+Play in your browser:
+
+```bash
+# Start development server for web
+./gradlew :composeApp:wasmJsRun
+```
+
+The game will open in your default browser. Web version features:
+- Full gameplay experience in browser
+- localStorage for high score persistence
+- Web Audio API for menu music and sound effects
+- ESC key for pause menu
+
 ### Build Distributable Packages
 
 Create native installers for your platform:
@@ -153,9 +169,13 @@ Create native installers for your platform:
 
 # Universal JAR (all platforms)
 ./gradlew :composeApp:packageUberJarForCurrentOS
+
+# Web version (wasmJs)
+./gradlew :composeApp:wasmJsBrowserDistribution
 ```
 
 Installers will be created in `composeApp/build/compose/binaries/main/`
+Web build output in `composeApp/build/dist/wasmJs/`
 
 ### Development Commands
 
@@ -179,23 +199,30 @@ The project follows **Clean Architecture** with modular organization:
 
 ```
 CatJumpsBarrels/
-├── composeApp/          # Main application module (JVM Desktop)
-│   └── src/jvmMain/
-│       ├── kotlin/dev/pgm/game/
-│       │   ├── audio/        # MusicPlayer & RetroSoundGenerator
-│       │   ├── di/           # Koin dependency injection
-│       │   ├── presentation/ # UI & rendering
-│       │   │   ├── navigation/ # NavigationGraph
-│       │   │   ├── renderer/ # GameRenderer (Canvas drawing)
-│       │   │   └── ui/       # Composable screens
-│       │   ├── resources/    # AnimationProvider
-│       │   └── Game.kt       # Main entry point
-│       │
-│       └── composeResources/drawable/  # Sprite assets
-│           ├── cat_*.png     # 72 cat animation frames
-│           ├── dog_*.png     # 7 boss animation frames
-│           ├── barrel_*.png  # Barrel sprites
-│           └── *.png         # Backgrounds, platforms, textures
+├── composeApp/          # Main application module (Multiplatform)
+│   ├── src/desktopMain/  # Desktop (JVM) platform
+│   │   └── kotlin/dev/pgm/game/
+│   │       ├── audio/        # MusicPlayer & RetroSoundGenerator
+│   │       ├── di/           # Koin dependency injection
+│   │       ├── presentation/ # UI & rendering
+│   │       │   ├── navigation/ # NavigationGraph
+│   │       │   ├── renderer/ # GameRenderer (Canvas drawing)
+│   │       │   └── ui/       # Composable screens
+│   │       ├── resources/    # AnimationProvider
+│   │       └── Game.kt       # Main entry point
+│   │
+│   ├── src/jsMain/       # Web (wasmJs) platform
+│   │   ├── kotlin/dev/pgm/game/
+│   │   │   ├── audio/        # Web Audio API synthesis
+│   │   │   ├── presentation/ # Web-specific UI
+│   │   │   └── Game.kt       # Web entry point
+│   │   └── index.html        # Web application entry
+│   │
+│   └── composeResources/drawable/  # Sprite assets (shared)
+│       ├── cat_*.png     # 72 cat animation frames
+│       ├── dog_*.png     # 7 boss animation frames
+│       ├── barrel_*.png  # Barrel sprites
+│       └── *.png         # Backgrounds, platforms, textures
 │
 ├── core/                # Shared core utilities
 │   └── src/commonMain/kotlin/dev/pgm/game/core/
@@ -376,7 +403,27 @@ All sounds are generated programmatically using Java Sound API:
 
 ## 📋 Recent Changes
 
-### Version 1.2.0 (Latest)
+### Version 1.3.0 (Latest)
+- **Web Platform Support** - Full game playable in modern web browsers
+  - wasmJs compilation target for JavaScript/WebAssembly
+  - Web Audio API for menu music and sound effects
+  - localStorage for persistent high score storage
+  - ESC key pause menu for web version
+  - Loading screen and optimized web rendering
+- **Build System Migration** - Migrated from `jvmMain` to `desktopMain`
+  - Better multiplatform architecture
+  - Cleaner source organization
+  - Improved platform-specific implementations
+- **Web-Specific Features**
+  - Sprite-based GameRenderer for web efficiency
+  - localStorage integration for scores (web platform)
+  - EXIT button hidden in web version (replaced with ESC menu)
+  - Optimized audio synthesis for browser compatibility
+- **Platform Support**
+  - Desktop: Windows, macOS, Linux (JVM/Desktop)
+  - Web: Any browser with WebGL and WebAssembly support
+
+### Version 1.2.0
 - **Improved music system** - Smooth triangle/sine waves instead of harsh square waves
 - **Pleasant menu melody** - 100 BPM with melody, bass, and pad layers
 - **Music control** - Automatically stops when leaving main menu
@@ -419,7 +466,7 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Version**: 1.2.0
+**Version**: 1.3.0
 **Last Updated**: January 2026
 
 Developed with ❤️ using Kotlin and Compose Multiplatform
