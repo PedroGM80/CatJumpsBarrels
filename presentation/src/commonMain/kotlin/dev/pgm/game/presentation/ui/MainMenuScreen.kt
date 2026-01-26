@@ -28,13 +28,14 @@ import dev.pgm.game.presentation.theme.GameFonts
 
 /**
  * Pantalla del menú principal con estilo arcade retro.
+ * @param onExit Callback para salir del juego. Si es null, el botón EXIT no se muestra (útil para web).
  */
 @Composable
 fun MainMenuScreen(
     onNavigateToGame: () -> Unit,
     onNavigateToHighScores: () -> Unit,
     onNavigateToCredits: () -> Unit,
-    onExit: () -> Unit,
+    onExit: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showExitConfirmation by remember { mutableStateOf(false) }
@@ -101,14 +102,17 @@ fun MainMenuScreen(
                 onClick = onNavigateToCredits
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            // Solo mostrar botón EXIT si onExit no es null (desktop)
+            if (onExit != null) {
+                Spacer(modifier = Modifier.height(32.dp))
 
-            ArcadeMenuButton(
-                text = "EXIT",
-                icon = "✕",
-                color = Color(0xFFFF6B6B),
-                onClick = { showExitConfirmation = true }
-            )
+                ArcadeMenuButton(
+                    text = "EXIT",
+                    icon = "✕",
+                    color = Color(0xFFFF6B6B),
+                    onClick = { showExitConfirmation = true }
+                )
+            }
         }
 
         // Versión
@@ -137,8 +141,8 @@ fun MainMenuScreen(
                 .padding(bottom = 16.dp)
         )
 
-        // Diálogo de confirmación de salida
-        if (showExitConfirmation) {
+        // Diálogo de confirmación de salida (solo si onExit no es null)
+        if (showExitConfirmation && onExit != null) {
             ExitConfirmationDialog(
                 onConfirm = onExit,
                 onDismiss = { showExitConfirmation = false }

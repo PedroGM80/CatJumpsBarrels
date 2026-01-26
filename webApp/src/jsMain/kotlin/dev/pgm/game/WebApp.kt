@@ -64,11 +64,8 @@ fun WebApp() {
                     SoundPlayer.playMenuConfirm()
                     MusicController.stopMusic()
                     currentScreen = Screen.CREDITS
-                },
-                onExit = {
-                    // En web no podemos cerrar la ventana, volvemos al menú
-                    SoundPlayer.playMenuSelect()
                 }
+                // onExit no se pasa en web - el botón EXIT no se mostrará
             )
         }
         
