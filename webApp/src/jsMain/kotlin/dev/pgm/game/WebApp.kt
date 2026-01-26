@@ -19,9 +19,11 @@ import dev.pgm.game.audio.MusicController
 import dev.pgm.game.audio.SoundPlayer
 import dev.pgm.game.input.GameInput
 import dev.pgm.game.presentation.renderer.GameRenderer
+import dev.pgm.game.presentation.theme.GameFonts
 import dev.pgm.game.presentation.ui.MainMenuScreen
 import dev.pgm.game.presentation.ui.HighScoresScreen
 import dev.pgm.game.presentation.ui.CreditsScreen
+import dev.pgm.game.presentation.ui.components.HighScoreDialog
 import dev.pgm.game.presentation.viewmodel.GameViewModelComplete
 import dev.pgm.game.resources.AnimationProvider
 import kotlinx.coroutines.delay
@@ -73,6 +75,9 @@ fun WebApp() {
         Screen.GAME -> WebGameScreen(
             onBack = { 
                 currentScreen = Screen.MENU 
+            },
+            onNavigateToHighScores = {
+                currentScreen = Screen.HIGH_SCORES
             }
         )
         
@@ -101,9 +106,13 @@ enum class Screen {
 }
 
 @Composable
-fun WebGameScreen(onBack: () -> Unit) {
+fun WebGameScreen(
+    onBack: () -> Unit,
+    onNavigateToHighScores: () -> Unit
+) {
     val viewModel: GameViewModelComplete = koinInject()
     val gameState by viewModel.gameState.collectAsState()
+    val showHighScoreDialog by viewModel.showHighScoreDialog.collectAsState()
     
     var input by remember { mutableStateOf(GameInput()) }
     val focusRequester = remember { FocusRequester() }
@@ -156,6 +165,13 @@ fun WebGameScreen(onBack: () -> Unit) {
         }
     }
     
+    // Detectar fin de juego y verificar high score
+    LaunchedEffect(gameState.isGameOver) {
+        if (gameState.isGameOver) {
+            viewModel.checkIfHighScore()
+        }
+    }
+    
     // Game loop - solo inicia cuando las animaciones están cargadas
     val currentInput by rememberUpdatedState(input)
     LaunchedEffect(animationsLoaded) {
@@ -185,7 +201,7 @@ fun WebGameScreen(onBack: () -> Unit) {
                         if (event.key == Key.Escape) {
                             onBack()
                         }
-                        if (event.key == Key.R && (gameState.isGameOver || gameState.isWon)) {
+                        if (event.key == Key.R && gameState.isGameOver) {
                             viewModel.restart()
                         }
                         if (event.key == Key.P) {
@@ -205,6 +221,43 @@ fun WebGameScreen(onBack: () -> Unit) {
         GameRenderer(
             state = gameState,
             modifier = Modifier.fillMaxSize()
+        )
+        
+        // Botón de retorno al menú (visible cuando termina el juego)
+        if (gameState.isGameOver) {
+            Button(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 80.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color(0xFF1A1A1A),
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    "RETURN TO MENU",
+                    fontFamily = GameFonts.GameFont,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+    
+    // Diálogo de High Score
+    if (showHighScoreDialog) {
+        HighScoreDialog(
+            score = gameState.score,
+            onSave = { playerName ->
+                viewModel.saveHighScore(playerName) {
+                    onNavigateToHighScores()
+                }
+            },
+            onDismiss = {
+                viewModel.dismissHighScoreDialog {
+                    onBack()
+                }
+            }
         )
     }
 }
