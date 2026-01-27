@@ -79,6 +79,9 @@ jobs:
         run: chmod +x gradlew
       - name: Build web application
         run: ./gradlew :webApp:jsBrowserProductionWebpack --no-daemon
+      - name: List build output
+        run: |
+          ls -R webApp/build
       - name: Prepare GitHub Pages content
         run: |
           mkdir -p dist
