@@ -78,21 +78,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build web application
-        run: ./gradlew :webApp:jsBrowserDistribution --no-daemon
-      - name: List build output
-        run: find webApp/build -type d -name "*roduction*" -o -name "dist" | head -20
+        run: ./gradlew :webApp:jsBrowserProductionExecutable --no-daemon
       - name: Prepare GitHub Pages content
         run: |
           mkdir -p dist
-          if [ -d "webApp/build/dist/js/productionExecutable" ]; then
-            cp -r webApp/build/dist/js/productionExecutable/* dist/
-          elif [ -d "webApp/build/distributions" ]; then
-            cp -r webApp/build/distributions/* dist/
-          else
-            echo "Build output not found!"
-            find webApp/build -type f -name "*.js" | head -10
-            exit 1
-          fi
+          cp -r webApp/build/dist/js/productionExecutable/* dist/
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact for Pages
