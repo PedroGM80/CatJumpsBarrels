@@ -82,8 +82,7 @@ jobs:
       - name: Prepare GitHub Pages content
         run: |
           mkdir -p dist
-          cp webApp/build/processedResources/js/main/index.html dist/
-          cp webApp/build/kotlin-webpack/js/productionExecutable/* dist/
+          cp -r webApp/build/dist/js/productionExecutable/* dist/
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact for Pages
