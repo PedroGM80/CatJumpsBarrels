@@ -1,0 +1,118 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-desktop:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        if: runner.os != 'Windows'
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon
+        shell: bash
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+        shell: bash
+      - name: Create distributable packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          ./gradlew :composeApp:packageDeb --no-daemon
+          ./gradlew :composeApp:packageUberJarForCurrentOS --no-daemon
+        shell: bash
+      - name: Create distributable packages (macOS)
+        if: runner.os == 'macOS'
+        run: ./gradlew :composeApp:packageDmg --no-daemon
+        shell: bash
+      - name: Create distributable packages (Windows)
+        if: runner.os == 'Windows'
+        run: ./gradlew.bat :composeApp:packageMsi --no-daemon
+        shell: bash
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CatJumpsBarrels-${{ runner.os }}
+          path: |
+            composeApp/build/compose/binaries/main/**/*
+            composeApp/build/compose/jars/**/*
+          retention-days: 30
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build web application
+        run: ./gradlew :webApp:jsBrowserProductionWebpack --no-daemon
+      - name: Prepare GitHub Pages content
+        run: |
+          mkdir -p dist
+          cp -r webApp/build/dist/js/productionExecutable/* dist/
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact for Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy-pages:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs: build-web
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    if: github.event_name == 'release'
+    needs: build-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            CatJumpsBarrels-*/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
