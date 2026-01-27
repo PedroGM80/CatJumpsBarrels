@@ -78,11 +78,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build web application
-        run: ./gradlew :webApp:jsBrowserProductionExecutable --no-daemon
+        run: ./gradlew :webApp:jsBrowserProductionWebpack --no-daemon
       - name: Prepare GitHub Pages content
         run: |
           mkdir -p dist
-          cp -r webApp/build/dist/js/productionExecutable/* dist/
+          cp webApp/build/processedResources/js/main/index.html dist/
+          cp webApp/build/kotlin-webpack/js/productionExecutable/* dist/
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact for Pages
