@@ -75,17 +75,48 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+      - name: Set up Node.js (needed for webpack / Kotlin/JS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'     # or the version your project needs
+          cache: 'npm'
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Build web application
-        run: ./gradlew :webApp:jsBrowserProductionWebpack --no-daemon
-      - name: List build output
+      - name: Build web application (verbose)
         run: |
-          ls -R webApp/build
+          ./gradlew :webApp:jsBrowserProductionWebpack --no-daemon --info --stacktrace
+          echo "Gradle exit code: $?"
+        shell: bash
+      - name: Diagnose build output and prepare dist
+        run: |
+          echo "Listing webApp tree:"
+          if [ -d webApp ]; then
+            ls -la webApp || true
+          else
+            echo "ERROR: webApp directory missing"
+            exit 1
+          fi
+          echo "Listing webApp/build (if present):"
+          if [ -d webApp/build ]; then
+            ls -R webApp/build || true
+          else
+            echo "ERROR: webApp/build not found. The Gradle build probably failed or the task name/output path is different."
+            echo "Run './gradlew :webApp:tasks --all' locally to verify available tasks and outputs."
+            exit 1
+          fi
       - name: Prepare GitHub Pages content
         run: |
           mkdir -p dist
-          cp -r webApp/build/dist/js/productionExecutable/* dist/
+          BUILD_DIR="webApp/build/dist/js/productionExecutable"
+          if [ -d "$BUILD_DIR" ]; then
+            cp -r "$BUILD_DIR"/* dist/
+          else
+            echo "ERROR: expected build output not found at $BUILD_DIR"
+            echo "Available build/* directories:"
+            ls -R webApp/build || true
+            exit 1
+          fi
+        shell: bash
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact for Pages
